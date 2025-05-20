@@ -12,24 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-grammar GenericeSQL;
+grammar GenericSQL;
 import GenericLex;
 
 sqlStatements
-    : singleStatement+ EOF
-    ;
-
-singleStatement
-    : (statement (SEMICOLON | EOF)) | emptyStatement
-    ;
-emptyStatement
-    : SEMICOLON
+    : statement+ EOF
     ;
 
 statement
     // Query Statement
-    : queryStatement
-    | unsupportedStatement
+    : (queryStatement (SEMICOLON | EOF)) | emptyStatement
+    ;
+
+emptyStatement
+    : SEMICOLON
     ;
 
 subfieldName
@@ -40,24 +36,10 @@ nestedFieldName
     : subfieldName (DOT_IDENTIFIER | '.' subfieldName)*
     ;
 
-unsupportedStatement
-    : LOCK TABLES lock_item (',' lock_item)*
-    | UNLOCK TABLES
-    ;
-
-lock_item
-    : identifier (AS? alias=identifier)? lock_type
-    ;
-
-lock_type
-    : READ LOCAL?
-    | LOW_PRIORITY? WRITE
-    ;
-
 // ------------------------------------------- Query Statement ---------------------------------------------------------
 
 queryStatement
-    : (explainDesc | optimizerTrace) ? queryRelation outfile?;
+    : (explainDesc) ? queryRelation;
 
 queryRelation
     : withClause? queryNoWith
@@ -167,8 +149,8 @@ relation
     ;
 
 relationPrimary
-    : qualifiedName queryPeriod? partitionNames? tabletList? replicaList? sampleClause? (
-        AS? alias=identifier)? bracketHint? (BEFORE ts=string)?                          #tableAtom
+    : qualifiedName queryPeriod? partitionNames? tabletList? replicaList?
+        (AS? alias=identifier)? bracketHint? (BEFORE ts=string)?                        #tableAtom
     | '(' VALUES rowConstructor (',' rowConstructor)* ')'
         (AS? alias=identifier columnAliases?)?                                          #inlineTable
     | ASSERT_ROWS? subquery (AS? alias=identifier columnAliases?)?                      #subqueryWithAlias
@@ -176,8 +158,6 @@ relationPrimary
         (AS? alias=identifier columnAliases?)?                                          #tableFunction
     | TABLE '(' qualifiedName '(' argumentList ')' ')'
         (AS? alias=identifier columnAliases?)?                                          #normalizedTableFunction
-    | FILES propertyList
-        (AS? alias=identifier columnAliases?)?                                          #fileTableFunction
     | '(' relations ')'                                                                 #parenthesizedRelation
     ;
 
@@ -190,13 +170,8 @@ pivotAggregationExpression
     : functionCall (AS? (identifier | string))?
     ;
 
-
 pivotValue
     : (literalExpression | literalExpressionList) (AS? (identifier | string))?
-    ;
-
-sampleClause
-    : SAMPLE propertyList?
     ;
 
 argumentList
@@ -238,10 +213,6 @@ bracketHint
     | '[' identifier '|' primaryExpression literalExpressionList']'
     ;
 
-hintMap
-    : k=identifierOrString '=' v=literalExpression
-    ;
-
 joinCriteria
     : ON expression
     | USING '(' identifier (',' identifier)* ')'
@@ -264,23 +235,6 @@ keyPartitions
 
 tabletList
     : TABLET '(' INTEGER_VALUE (',' INTEGER_VALUE)* ')'
-    ;
-
-prepareStatement
-    : PREPARE identifier FROM prepareSql
-    ;
-
-prepareSql
-    : statement
-    | SINGLE_QUOTED_TEXT
-    ;
-
-executeStatement
-    : EXECUTE identifier (USING  '@'identifierOrString (',' '@'identifierOrString)*)?
-    ;
-
-deallocateStatement
-    : (DEALLOCATE | DROP) PREPARE identifier
     ;
 
 replicaList
@@ -308,24 +262,12 @@ replicaList
  * = (assignment)
  */
 
-expressionsWithDefault
-    : '(' expressionOrDefault (',' expressionOrDefault)* ')'
-    ;
-
-expressionOrDefault
-    : expression | DEFAULT
-    ;
-
 mapExpressionList
     : mapExpression (',' mapExpression)*
     ;
 
 mapExpression
     : key=expression ':' value=expression
-    ;
-
-expressionSingleton
-    : expression EOF
     ;
 
 expression
@@ -497,7 +439,7 @@ specialFunctionExpression
     | SECOND '(' expression ')'
     | TIMESTAMPADD '(' unitIdentifier ',' expression ',' expression ')'
     | TIMESTAMPDIFF '(' unitIdentifier ',' expression ',' expression ')'
-    //| WEEK '(' expression ')' TODO: Support week(expr) function
+    | WEEK '(' expression ')'
     | YEAR '(' expression ')'
     | PASSWORD '(' string ')'
     | FLOOR '(' expression ')'
@@ -548,11 +490,7 @@ frameBound
     ;
 
 explainDesc
-    : (DESC | DESCRIBE | EXPLAIN) (LOGICAL | ANALYZE | VERBOSE | COSTS | SCHEDULER)?
-    ;
-
-optimizerTrace
-    : TRACE (ALL | LOGS | TIMES | VALUES | REASON) identifier?
+    : EXPLAIN (LOGICAL | ANALYZE | VERBOSE | COSTS)?
     ;
 
 stringList
@@ -567,31 +505,11 @@ keyPartition
     : partitionColName=identifier '=' partitionColValue=literalExpression
     ;
 
-properties
-    : PROPERTIES '(' property (',' property)* ')'
-    ;
-
-propertyList
-    : '(' property (',' property)* ')'
-    ;
-
-property
-    : key=string '=' value=string
-    ;
-
 varType
     : GLOBAL
     | LOCAL
     | SESSION
     | VERBOSE
-    ;
-
-outfile
-    : INTO OUTFILE file=string fileFormat? properties?
-    ;
-
-fileFormat
-    : FORMAT AS (identifier | string)
     ;
 
 string
@@ -702,27 +620,11 @@ qualifiedName
     : identifier (DOT_IDENTIFIER | '.' identifier)*
     ;
 
-tableName
-    : qualifiedName
-    ;
-
-writeBranch
-    : FOR? VERSION AS OF identifier
-    ;
-
 identifier
     : LETTER_IDENTIFIER      #unquotedIdentifier
     | nonReserved            #unquotedIdentifier
     | DIGIT_IDENTIFIER       #digitIdentifier
     | BACKQUOTED_IDENTIFIER  #backQuotedIdentifier
-    ;
-
-identifierWithAlias
-    : originalName=identifier (AS alias=identifier)?
-    ;
-
-identifierWithAliasList
-    : '(' identifierWithAlias (',' identifierWithAlias)* ')'
     ;
 
 identifierList
@@ -734,30 +636,6 @@ identifierOrString
     | string
     ;
 
-identifierOrStringList
-    : identifierOrString (',' identifierOrString)*
-    ;
-
-identifierOrStringOrStar
-    : ASTERISK_SYMBOL
-    | identifier
-    | string
-    ;
-
-user
-    : identifierOrString                                     # userWithoutHost
-    | identifierOrString '@' identifierOrString              # userWithHost
-    | identifierOrString '@' '[' identifierOrString ']'      # userWithHostAndBlanket
-    ;
-
-assignment
-    : identifier EQ expressionOrDefault
-    ;
-
-assignmentList
-    : assignment (',' assignment)*
-    ;
-
 number
     : DECIMAL_VALUE  #decimalValue
     | DOUBLE_VALUE   #doubleValue
@@ -765,45 +643,26 @@ number
     ;
 
 nonReserved
-    : ACCESS | ACTIVE | ADVISOR | AFTER | AGGREGATE | APPLY | ASYNC | AUTHORS | AVG | ADMIN | ANTI | AUTHENTICATION | AUTO_INCREMENT | AUTOMATED
-    | ARRAY_AGG | ARRAY_AGG_DISTINCT | ASSERT_ROWS | AWARE
-    | BACKEND | BACKENDS | BACKUP | BEGIN | BITMAP_UNION | BLACKLIST | BLACKHOLE | BINARY | BODY | BOOLEAN | BRANCH | BROKER | BUCKETS
-    | BUILTIN | BASE | BEFORE | BASELINE
-    | CACHE | CAST | CANCEL | CATALOG | CATALOGS | CEIL | CHAIN | CHARSET | CLEAN | CLEAR | CLUSTER | CLUSTERS | CNGROUP | CNGROUPS | CURRENT | COLLATION | COLUMNS
-    | CUME_DIST | CUMULATIVE | COMMENT | COMMIT | COMMITTED | COMPUTE | CONNECTION | CONSISTENT | COSTS | COUNT
-    | CONFIG | COMPACT
-    | DATA | DATE | DATACACHE | DATETIME | DAY | DAYS | DECOMMISSION | DIALECT | DISABLE | DISK | DISTRIBUTION | DUPLICATE | DYNAMIC | DISTRIBUTED | DICTIONARY | DICTIONARY_GET | DEALLOCATE
-    | ENABLE | END | ENGINE | ENGINES | ERRORS | EVENTS | EXECUTE | EXTERNAL | EXTRACT | EVERY | ENCLOSE | ESCAPE | EXPORT
-    | FAILPOINT | FAILPOINTS | FIELDS | FILE | FILTER | FIRST | FLOOR | FOLLOWING | FORMAT | FN | FRONTEND | FRONTENDS | FOLLOWER | FREE
-    | FUNCTIONS
-    | GLOBAL | GRANTS | GROUP_CONCAT
-    | HASH | HISTOGRAM | HELP | HLL_UNION | HOST | HOUR | HOURS | HUB
-    | IDENTIFIED | IMAGE | IMPERSONATE | INACTIVE | INCREMENTAL | INDEXES | INSTALL | INTEGRATION | INTEGRATIONS | INTERMEDIATE
-    | INTERVAL | ISOLATION
-    | JOB
-    | LABEL | LAST | LESS | LEVEL | LIST | LOCAL | LOCATION | LOGS | LOGICAL | LOW_PRIORITY | LOCK | LOCATIONS
-    | MANUAL | MAP | MAPPING | MAPPINGS | MASKING | MATCH | MAPPINGS | MATERIALIZED | MAX | META | MIN | MINUTE | MINUTES | MODE | MODIFY | MONTH | MERGE | MINUS | MULTIPLE
-    | NAME | NAMES | NEGATIVE | NO | NODE | NODES | NONE | NULLS | NUMBER | NUMERIC
-    | OBSERVER | OF | OFFSET | ONLY | OPTIMIZER | OPEN | OPERATE | OPTION | OVERWRITE | OFF
-    | PARTITIONS | PASSWORD | PATH | PAUSE | PENDING | PERCENTILE_UNION | PIVOT | PLAN | PLUGIN | PLUGINS | POLICY | POLICIES
-    | PERCENT_RANK | PREDICATE | PRECEDING | PRIORITY | PROC | PROCESSLIST | PROFILE | PROFILELIST | PROVIDER | PROVIDERS | PRIVILEGES | PROBABILITY | PROPERTIES | PROPERTY | PIPE | PIPES
-    | QUARTER | QUERY | QUERIES | QUEUE | QUOTA | QUALIFY
-    | REASON | REMOVE | REWRITE | RANDOM | RANK | RECOVER | REFRESH | REPAIR | REPEATABLE | REPLACE_IF_NOT_NULL | REPLICA | REPOSITORY
-    | REPOSITORIES
-    | RESOURCE | RESOURCES | RESTORE | RESUME | RETAIN | RETENTION | RETURNS | RETRY | REVERT | ROLE | ROLES | ROLLUP | ROLLBACK | ROUTINE | ROW | RUNNING | RULE | RULES
-    | SAMPLE | SCHEDULE | SCHEDULER | SECOND | SECURITY | SEPARATOR | SERIALIZABLE |SEMI | SESSION | SETS | SIGNED | SNAPSHOT | SNAPSHOTS | SQLBLACKLIST | START | STARROCKS
-    | STREAM | SUM | STATUS | STOP | SKIP_HEADER | SWAP
-    | STORAGE| STRING | STRUCT | STATS | SUBMIT | SUSPEND | SYNC | SYSTEM_TIME
-    | TABLES | TABLET | TABLETS | TAG | TASK | TEMPORARY | TIMESTAMP | TIMESTAMPADD | TIMESTAMPDIFF | THAN | TIME | TIMES | TRANSACTION | TRACE | TRANSLATE
-    | TRIM_SPACE
-    | TRIGGERS | TRUNCATE | TYPE | TYPES
-    | UNBOUNDED | UNCOMMITTED | UNSET | UNINSTALL | USAGE | USER | USERS | UNLOCK
-    | VALUE | VARBINARY | VARIABLES | VIEW | VIEWS | VERBOSE | VERSION | VOLUME | VOLUMES
-    | WARNINGS | WEEK | WHITELIST | WORK | WRITE  | WAREHOUSE | WAREHOUSES
+    : AVG | ANTI | ARRAY_ELEMENT | ARRAY_AGG | ARRAY_AGG_DISTINCT | ASSERT_ROWS | AWARE
+    | BINARY | BOOLEAN | BEFORE
+    | CAST | CATALOG | CEIL | CURRENT | CUME_DIST | COSTS | COUNT
+    | DATE | DATETIME | DAY | DICTIONARY_GET | DOTDOTDOT
+    | END | EXTRACT | EXCLUDE | EXCEPT
+    | FIRST | FLOOR | FOLLOWING | FN
+    | GLOBAL | GROUP_CONCAT
+    | HLL_UNION | HOUR | HOURS
+    | INTERVAL
+    | LAST | LOCAL | LOGICAL
+    | MAP | MATCH | MAX | MIN | MINUTE | MONTH | MINUS
+    | NULLS | NUMBER | NUMERIC
+    | OF | OFFSET
+    | PARTITIONS | PASSWORD | PIVOT | PERCENT_RANK
+    | QUARTER | QUALIFY
+    | RANK | REPLICA | ROLLUP | ROW
+    | SECOND | SEPARATOR |SEMI | SESSION | SETS | SIGNED | SUM | STRING | STRUCT | SYSTEM_TIME
+    | TABLET | TEMPORARY | TIMESTAMP | TIMESTAMPADD | TIMESTAMPDIFF | TIME | TRANSLATE
+    | UNBOUNDED | USER
+    | VARBINARY | VERBOSE | VERSION
+    | WEEK
     | YEAR
-    | DOTDOTDOT | NGRAMBF | VECTOR
-    | FIELD
-    | ARRAY_ELEMENT
-    | PERSISTENT
-    | EXCLUDE | EXCEPT
     ;
