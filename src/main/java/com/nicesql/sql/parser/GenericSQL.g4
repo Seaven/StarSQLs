@@ -326,7 +326,6 @@ valueExpression
 primaryExpression
     : userVariable                                                                        #userVariableExpression
     | systemVariable                                                                      #systemVariableExpression
-    | DICTIONARY_GET '(' expressionList ')'                                               #dictionaryGetExpr
     | functionCall                                                                        #functionCallExpression
     | '{' FN functionCall '}'                                                             #odbcFunctionCallExpression
     | primaryExpression COLLATE (identifier | string)                                     #collate
@@ -368,8 +367,6 @@ literalExpression
 
 functionCall
     : EXTRACT '(' identifier FROM valueExpression ')'                                     #extract
-    | GROUPING '(' (expression (',' expression)*)? ')'                                    #groupingOperation
-    | GROUPING_ID '(' (expression (',' expression)*)? ')'                                 #groupingOperation
     | informationFunctionExpression                                                       #informationFunction
     | specialDateTimeExpression                                                           #specialDateTime
     | specialFunctionExpression                                                           #specialFunction
@@ -380,15 +377,15 @@ functionCall
     ;
 
 aggregationFunction
-    : AVG '(' setQuantifier? expression ')'
-    | COUNT '(' ASTERISK_SYMBOL? ')'
-    | COUNT '(' (setQuantifier bracketHint?)? (expression (',' expression)*)? ')'
-    | MAX '(' setQuantifier? expression ')'
-    | MIN '(' setQuantifier? expression ')'
-    | SUM '(' setQuantifier? expression ')'
-    | ARRAY_AGG '(' setQuantifier? expression (ORDER BY sortItem (',' sortItem)*)? ')'
-    | ARRAY_AGG_DISTINCT '(' expression (ORDER BY sortItem (',' sortItem)*)? ')'
-    | GROUP_CONCAT '(' setQuantifier? expression (',' expression)* (ORDER BY sortItem (',' sortItem)*)? (SEPARATOR expression)? ')'
+    : name = AVG '(' setQuantifier? expression ')'
+    | name = COUNT '(' ASTERISK_SYMBOL? ')'
+    | name = COUNT '(' (setQuantifier bracketHint?)? (expression (',' expression)*)? ')'
+    | name = MAX '(' setQuantifier? expression ')'
+    | name = MIN '(' setQuantifier? expression ')'
+    | name = SUM '(' setQuantifier? expression ')'
+    | name = ARRAY_AGG '(' setQuantifier? expression (ORDER BY sortItem (',' sortItem)*)? ')'
+    | name = ARRAY_AGG_DISTINCT '(' expression (ORDER BY sortItem (',' sortItem)*)? ')'
+    | name = GROUP_CONCAT '(' setQuantifier? expression (',' expression)* (ORDER BY sortItem (',' sortItem)*)? (SEPARATOR expression)? ')'
     ;
 
 userVariable
@@ -422,28 +419,8 @@ specialDateTimeExpression
     ;
 
 specialFunctionExpression
-    : CHAR '(' expression ')'
-    | DAY '(' expression ')'
-    | HOUR '(' expression ')'
-    | IF '(' (expression (',' expression)*)? ')'
-    | LEFT '(' expression ',' expression ')'
-    | LIKE '(' expression ',' expression ')'
-    | MINUTE '(' expression ')'
-    | MOD '(' expression ',' expression ')'
-    | MONTH '(' expression ')'
-    | QUARTER '(' expression ')'
-    | REGEXP '(' expression ',' expression ')'
-    | REPLACE '(' (expression (',' expression)*)? ')'
-    | RIGHT '(' expression ',' expression ')'
-    | RLIKE '(' expression ',' expression ')'
-    | SECOND '(' expression ')'
-    | TIMESTAMPADD '(' unitIdentifier ',' expression ',' expression ')'
-    | TIMESTAMPDIFF '(' unitIdentifier ',' expression ',' expression ')'
-    | WEEK '(' expression ')'
-    | YEAR '(' expression ')'
-    | PASSWORD '(' string ')'
-    | FLOOR '(' expression ')'
-    | CEIL '(' expression ')'
+    : name = TIMESTAMPADD '(' unitIdentifier ',' expression ',' expression ')'
+    | name = TIMESTAMPDIFF '(' unitIdentifier ',' expression ',' expression ')'
     ;
 
 windowFunction
@@ -646,7 +623,7 @@ nonReserved
     : AVG | ANTI | ARRAY_ELEMENT | ARRAY_AGG | ARRAY_AGG_DISTINCT | ASSERT_ROWS | AWARE
     | BINARY | BOOLEAN | BEFORE
     | CAST | CATALOG | CEIL | CURRENT | CUME_DIST | COSTS | COUNT
-    | DATE | DATETIME | DAY | DICTIONARY_GET | DOTDOTDOT
+    | DATE | DATETIME | DAY | DOTDOTDOT
     | END | EXTRACT | EXCLUDE | EXCEPT
     | FIRST | FLOOR | FOLLOWING | FN
     | GLOBAL | GROUP_CONCAT
