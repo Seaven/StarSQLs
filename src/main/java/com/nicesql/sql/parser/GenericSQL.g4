@@ -12,6 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 grammar GenericSQL;
 import GenericLex;
 
@@ -144,8 +156,8 @@ relations
     ;
 
 relation
-    : relationPrimary joinRelation*
-    | '(' relationPrimary joinRelation* ')'
+    : relationPrimary joinRelation*                                                     #nonBracketsRelation
+    | '(' relationPrimary joinRelation* ')'                                             #bracketsRelation
     ;
 
 relationPrimary
@@ -301,7 +313,7 @@ predicateOperations [ParserRuleContext value]
     : NOT? IN '(' queryRelation ')'                                                       #inSubquery
     | NOT? IN '(' expressionList ')'                                                      #inList
     | NOT? BETWEEN lower = valueExpression AND upper = predicate                          #between
-    | NOT? (LIKE | RLIKE | REGEXP) pattern=valueExpression                                #like
+    | NOT? op=(LIKE | RLIKE | REGEXP) pattern=valueExpression                             #like
     ;
 
 valueExpression
@@ -467,11 +479,7 @@ frameBound
     ;
 
 explainDesc
-    : EXPLAIN (LOGICAL | ANALYZE | VERBOSE | COSTS)?
-    ;
-
-stringList
-    : '(' string (',' string)* ')'
+    : EXPLAIN level = (LOGICAL | ANALYZE | VERBOSE | COSTS)?
     ;
 
 literalExpressionList
@@ -509,14 +517,6 @@ booleanValue
 
 interval
     : INTERVAL value=expression from=unitIdentifier
-    ;
-
-taskInterval
-    : INTERVAL value=expression from=taskUnitIdentifier
-    ;
-
-taskUnitIdentifier
-    : DAY | HOUR | MINUTE | SECOND
     ;
 
 unitIdentifier
