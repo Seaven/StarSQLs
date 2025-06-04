@@ -15,6 +15,7 @@ package com.nicesql.sql.format;
 import com.nicesql.sql.parser.GenericSQLParser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.RuleContext;
+import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.List;
 
@@ -30,6 +31,14 @@ public class FormatPrinter extends FormatPrinterBase {
             if (i != contexts.size() - 1) {
                 append(splitStr);
             }
+        }
+        return null;
+    }
+
+    @Override
+    public Void visit(ParseTree tree) {
+        if (tree != null) {
+            return super.visit(tree);
         }
         return null;
     }
@@ -152,7 +161,7 @@ public class FormatPrinter extends FormatPrinterBase {
     @Override
     public Void visitQuerySpecification(GenericSQLParser.QuerySpecificationContext ctx) {
         appendKey(ctx.SELECT());
-        appendKey(ctx.setQuantifier().getText());
+        visit(ctx.setQuantifier());
         visitList(ctx.selectItem(), comma());
         appendNewLine();
         visit(ctx.fromClause());
@@ -180,6 +189,8 @@ public class FormatPrinter extends FormatPrinterBase {
         }
         return null;
     }
+
+
 
     @Override
     public Void visitFrom(GenericSQLParser.FromContext ctx) {
@@ -233,7 +244,8 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitSetQuantifier(GenericSQLParser.SetQuantifierContext ctx) {
-        return super.visitSetQuantifier(ctx);
+        appendKey(ctx.getText());
+        return null;
     }
 
     @Override
@@ -253,7 +265,6 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitRelations(GenericSQLParser.RelationsContext ctx) {
-        assert ctx.relation().size() == ctx.LATERAL().size();
         visit(ctx.relation(0));
         for (int i = 1; i < ctx.relation().size(); i++) {
             append(comma());

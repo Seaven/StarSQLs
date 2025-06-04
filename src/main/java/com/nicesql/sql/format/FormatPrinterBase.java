@@ -12,7 +12,15 @@
 
 package com.nicesql.sql.format;
 
+import com.google.common.collect.Lists;
+import com.ibm.icu.util.CaseInsensitiveString;
+import com.nicesql.sql.parser.CaseInsensitiveStream;
+import com.nicesql.sql.parser.GenericLex;
 import com.nicesql.sql.parser.GenericSQLBaseVisitor;
+import com.nicesql.sql.parser.GenericSQLLexer;
+import com.nicesql.sql.parser.GenericSQLParser;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.HashSet;
@@ -22,9 +30,9 @@ import java.util.Set;
 public class FormatPrinterBase extends GenericSQLBaseVisitor<Void> {
     protected FormatOptions options;
 
-    protected List<StringBuilder> formatSQLs;
+    protected List<StringBuilder> formatSQLs = Lists.newArrayList();
 
-    protected StringBuilder currentSQL;
+    protected StringBuilder currentSQL = new StringBuilder();
 
     protected int indentLevel = 0;
 
@@ -117,5 +125,21 @@ public class FormatPrinterBase extends GenericSQLBaseVisitor<Void> {
 
     protected String commaNewLine() {
         return comma() + options.newLine;
+    }
+
+    private GenericSQLParser.SqlStatementsContext parse(String sql) {
+        GenericSQLLexer lexer = new GenericSQLLexer(new CaseInsensitiveStream(CharStreams.fromString(sql)));
+        GenericSQLParser parser = new GenericSQLParser(new CommonTokenStream(lexer));
+        return parser.sqlStatements();
+    }
+
+    public String format(String sql) {
+        GenericSQLParser.SqlStatementsContext context = parse(sql);
+        for (GenericSQLParser.StatementContext stmt : context.statement()) {
+            stmt.accept(this);
+            formatSQLs.add(currentSQL);
+            currentSQL = new StringBuilder();
+        }
+        return String.join("\n", formatSQLs);
     }
 }

@@ -10,5 +10,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-public class FormatPrinterTest {
+import com.nicesql.sql.format.FormatOptions;
+import com.nicesql.sql.format.FormatPrinter;
+import org.junit.jupiter.api.Test;
+
+public class PrettyPrintTest extends PrinterTestBase {
+
+    private FormatOptions options = new FormatOptions();
+
+    @Test
+    public void test() {
+        FormatPrinter printer = new FormatPrinter(options);
+        String sql = sql("tpch/q1.sql");
+        System.out.println(sql);
+        String result = printer.format(sql);
+
+        System.out.println(result);
+    }
+
 }
