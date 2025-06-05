@@ -250,7 +250,17 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitSelectSingle(GenericSQLParser.SelectSingleContext ctx) {
-        return super.visitSelectSingle(ctx);
+        visit(ctx.expression());
+        if (ctx.AS() != null) {
+            appendKey(ctx.AS());
+            if (ctx.identifier() != null) {
+                append(ctx.identifier().getText());
+            }
+            if (ctx.string() != null) {
+                append(ctx.string().getText());
+            }
+        }
+        return null;
     }
 
     @Override
@@ -567,6 +577,9 @@ public class FormatPrinter extends FormatPrinterBase {
         return null;
     }
 
+
+
+
     @Override
     public Void visitArrowExpression(GenericSQLParser.ArrowExpressionContext ctx) {
         return super.visitArrowExpression(ctx);
@@ -779,7 +792,8 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitColumnReference(GenericSQLParser.ColumnReferenceContext ctx) {
-        return super.visitColumnReference(ctx);
+        append(ctx.identifier().getText());
+        return null;
     }
 
     @Override

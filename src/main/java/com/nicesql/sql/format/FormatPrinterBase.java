@@ -72,7 +72,7 @@ public class FormatPrinterBase extends GenericSQLBaseVisitor<Void> {
             key = key.toUpperCase();
         }
         keywords.add(key);
-        currentSQL.append(key);
+        currentSQL.append(key).append(" ");
         return this;
     }
 
