@@ -11,7 +11,9 @@
 // limitations under the License.
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Objects;
 
@@ -39,4 +41,12 @@ public class PrinterTestBase {
         return read(path + "/" + file);
     }
 
+    public static void saveResult(String file, String content) {
+        String path = Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource("result")).getPath();
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(path + "/" + file))) {
+            writer.write(content);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

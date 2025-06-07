@@ -13,9 +13,7 @@
 package com.nicesql.sql.format;
 
 import com.google.common.collect.Lists;
-import com.ibm.icu.util.CaseInsensitiveString;
 import com.nicesql.sql.parser.CaseInsensitiveStream;
-import com.nicesql.sql.parser.GenericLex;
 import com.nicesql.sql.parser.GenericSQLBaseVisitor;
 import com.nicesql.sql.parser.GenericSQLLexer;
 import com.nicesql.sql.parser.GenericSQLParser;
@@ -26,6 +24,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class FormatPrinterBase extends GenericSQLBaseVisitor<Void> {
     protected FormatOptions options;
@@ -38,9 +37,6 @@ public class FormatPrinterBase extends GenericSQLBaseVisitor<Void> {
 
     protected Set<String> keywords = HashSet.newHashSet(12);
 
-    protected void nextLevel() {
-    }
-
     protected void intoLevel(Runnable func) {
         indentLevel++;
         func.run();
@@ -50,7 +46,7 @@ public class FormatPrinterBase extends GenericSQLBaseVisitor<Void> {
     protected void intoParentheses(Runnable func) {
         append("(");
         func.run();
-        append(") ");
+        append(")");
     }
 
     protected FormatPrinterBase append(String str) {
@@ -65,22 +61,34 @@ public class FormatPrinterBase extends GenericSQLBaseVisitor<Void> {
     }
 
     protected FormatPrinterBase appendKey(String key) {
-        if (key == null) {
-            return this;
-        }
-        if (options.upperCaseKeyWords) {
-            key = key.toUpperCase();
-        }
-        keywords.add(key);
-        currentSQL.append(key).append(" ");
-        return this;
+        return appendKey(key, true);
     }
 
     protected FormatPrinterBase appendKey(TerminalNode node) {
         if (node == null) {
             return this;
         }
-        return appendKey(node.getText());
+        return appendKey(node.getText(), true);
+    }
+
+    protected FormatPrinterBase appendKey(String key, boolean autoPrefixSpace) {
+        if (key == null) {
+            return this;
+        }
+        key = key.trim();
+        if (options.upperCaseKeyWords) {
+            key = key.toUpperCase();
+        }
+
+        if (autoPrefixSpace && currentSQL.length() > 0) {
+            char l = currentSQL.charAt(currentSQL.length() - 1);
+            if (' ' != l && l != '\n' && l != '\r' && l != '\t') {
+                currentSQL.append(' ');
+            }
+        }
+        keywords.add(key);
+        currentSQL.append(key).append(" ");
+        return this;
     }
 
     protected FormatPrinterBase appendIndent() {
@@ -100,31 +108,10 @@ public class FormatPrinterBase extends GenericSQLBaseVisitor<Void> {
         return this;
     }
 
-    protected FormatPrinterBase appendFnArgs(String func, String... args) {
-        currentSQL.append(func).append('(');
-        currentSQL.append(String.join(comma(), args));
-        currentSQL.append(')');
-        return this;
-    }
-
-    //    protected FormatPrinterBase strip(String str, boolean stripBreak) {
-    //        int len = str.length();
-    //        if (stripBreak) {
-    //            len -= 1;
-    //        } else {
-    //            len -= str.length();
-    //        }
-    //        currentSQL.delete(len, currentSQL.length());
-    //        return this;
-    //    }
     protected String comma() {return ",";}
 
-    protected String newLineComma() {
-        return options.newLine + comma();
-    }
-
-    protected String commaNewLine() {
-        return comma() + options.newLine;
+    protected String newLine() {
+        return options.newLine;
     }
 
     private GenericSQLParser.SqlStatementsContext parse(String sql) {
@@ -140,6 +127,9 @@ public class FormatPrinterBase extends GenericSQLBaseVisitor<Void> {
             formatSQLs.add(currentSQL);
             currentSQL = new StringBuilder();
         }
-        return String.join("\n", formatSQLs);
+        return formatSQLs.stream()
+                .map(StringBuilder::toString)
+                .map(String::trim)
+                .collect(Collectors.joining("\n"));
     }
 }
