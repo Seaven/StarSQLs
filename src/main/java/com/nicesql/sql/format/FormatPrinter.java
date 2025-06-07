@@ -18,6 +18,7 @@ import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 public class FormatPrinter extends FormatPrinterBase {
 
@@ -95,37 +96,63 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitQueryPeriod(GenericSQLParser.QueryPeriodContext ctx) {
-        return super.visitQueryPeriod(ctx);
+        appendKey(ctx.FOR());
+        visit(ctx.periodType());
+        if (ctx.BETWEEN() != null) {
+            appendKey(ctx.BETWEEN());
+            visit(ctx.expression(0));
+            appendKey(ctx.AND());
+            visit(ctx.expression(1));
+        } else if (ctx.FROM() != null) {
+            appendKey(ctx.FROM());
+            visit(ctx.expression(0));
+            appendKey(ctx.TO());
+            visit(ctx.expression(1));
+        } else if (ctx.ALL() != null) {
+            appendKey(ctx.ALL());
+        } else if (ctx.AS() != null && ctx.end != null) {
+            appendKey(ctx.AS());
+            appendKey(ctx.OF());
+            visit(ctx.end);
+        }
+        return null;
     }
 
     @Override
     public Void visitPeriodType(GenericSQLParser.PeriodTypeContext ctx) {
-        return super.visitPeriodType(ctx);
+        appendKey(ctx.getText());
+        return null;
     }
 
     @Override
     public Void visitQueryWithParentheses(GenericSQLParser.QueryWithParenthesesContext ctx) {
-        return super.visitQueryWithParentheses(ctx);
+        intoLevel(() -> visit(ctx.subquery()));
+        return null;
     }
 
     @Override
     public Void visitSetOperation(GenericSQLParser.SetOperationContext ctx) {
-        return super.visitSetOperation(ctx);
+        visit(ctx.left);
+        appendKey(ctx.operator.getText());
+        visit(ctx.setQuantifier());
+        visit(ctx.right);
+        return null;
     }
-
-    //    @Override
-    //    public Void visitQueryPrimaryDefault(GenericSQLParser.QueryPrimaryDefaultContext ctx) {
-    //        return super.visitQueryPrimaryDefault(ctx);
-    //    }
 
     @Override
     public Void visitSubquery(GenericSQLParser.SubqueryContext ctx) {
-        return super.visitSubquery(ctx);
+        append("(");
+        visit(ctx.queryRelation());
+        append(")");
+        return null;
     }
 
     @Override
     public Void visitRowConstructor(GenericSQLParser.RowConstructorContext ctx) {
-        return super.visitRowConstructor(ctx);
+        append("(");
+        visit(ctx.expressionList());
+        append(")");
+        return null;
     }
 
     @Override
@@ -189,8 +216,6 @@ public class FormatPrinter extends FormatPrinterBase {
         }
         return null;
     }
-
-
 
     @Override
     public Void visitFrom(GenericSQLParser.FromContext ctx) {
@@ -265,12 +290,24 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitSelectAll(GenericSQLParser.SelectAllContext ctx) {
-        return super.visitSelectAll(ctx);
+        if (ctx.qualifiedName() != null) {
+            append(ctx.qualifiedName().getText());
+            append(".");
+        }
+        append("*");
+        if (ctx.excludeClause() != null) {
+            visit(ctx.excludeClause());
+        }
+        return null;
     }
 
     @Override
     public Void visitExcludeClause(GenericSQLParser.ExcludeClauseContext ctx) {
-        return super.visitExcludeClause(ctx);
+        appendKey(ctx.getChild(0).getText());
+        append("(");
+        visitList(ctx.identifier(), comma());
+        append(")");
+        return null;
     }
 
     @Override
@@ -322,82 +359,208 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitInlineTable(GenericSQLParser.InlineTableContext ctx) {
-        return super.visitInlineTable(ctx);
+        append("(");
+        appendKey(ctx.VALUES().getText());
+        visitList(ctx.rowConstructor(), comma());
+        append(")");
+        if (ctx.AS() != null) {
+            appendKey(ctx.AS());
+            append(ctx.alias.getText());
+        }
+        if (ctx.columnAliases() != null) {
+            visit(ctx.columnAliases());
+        }
+        return null;
     }
 
     @Override
     public Void visitSubqueryWithAlias(GenericSQLParser.SubqueryWithAliasContext ctx) {
-        return super.visitSubqueryWithAlias(ctx);
+        if (ctx.ASSERT_ROWS() != null) {
+            appendKey(ctx.ASSERT_ROWS());
+        }
+        visit(ctx.subquery());
+        if (ctx.AS() != null) {
+            appendKey(ctx.AS());
+            append(ctx.alias.getText());
+        }
+        if (ctx.columnAliases() != null) {
+            visit(ctx.columnAliases());
+        }
+        return null;
     }
 
     @Override
     public Void visitTableFunction(GenericSQLParser.TableFunctionContext ctx) {
-        return super.visitTableFunction(ctx);
+        append(ctx.qualifiedName().getText());
+        append("(");
+        visit(ctx.expressionList());
+        append(")");
+        if (ctx.AS() != null) {
+            appendKey(ctx.AS());
+            append(ctx.alias.getText());
+        }
+        if (ctx.columnAliases() != null) {
+            visit(ctx.columnAliases());
+        }
+        return null;
     }
 
     @Override
     public Void visitNormalizedTableFunction(GenericSQLParser.NormalizedTableFunctionContext ctx) {
-        return super.visitNormalizedTableFunction(ctx);
+        appendKey(ctx.TABLE().getText());
+        append("(");
+        append(ctx.qualifiedName().getText());
+        append("(");
+        visit(ctx.argumentList());
+        append(")");
+        append(")");
+        if (ctx.AS() != null) {
+            appendKey(ctx.AS());
+            append(ctx.alias.getText());
+        }
+        if (ctx.columnAliases() != null) {
+            visit(ctx.columnAliases());
+        }
+        return null;
     }
 
     @Override
     public Void visitParenthesizedRelation(GenericSQLParser.ParenthesizedRelationContext ctx) {
-        return super.visitParenthesizedRelation(ctx);
+        append("(");
+        visit(ctx.relations());
+        append(")");
+        return null;
     }
 
     @Override
     public Void visitPivotClause(GenericSQLParser.PivotClauseContext ctx) {
-        return super.visitPivotClause(ctx);
+        appendKey(ctx.PIVOT().getText());
+        append("(");
+        visitList(ctx.pivotAggregationExpression(), comma());
+        appendKey(ctx.FOR().getText());
+        if (ctx.identifier() != null) {
+            append(ctx.identifier().getText());
+        } else if (ctx.identifierList() != null) {
+            visit(ctx.identifierList());
+        }
+        appendKey(ctx.IN().getText());
+        append("(");
+        visitList(ctx.pivotValue(), comma());
+        append(")");
+        append(")");
+        return null;
     }
 
     @Override
     public Void visitPivotAggregationExpression(GenericSQLParser.PivotAggregationExpressionContext ctx) {
-        return super.visitPivotAggregationExpression(ctx);
+        visit(ctx.functionCall());
+        if (ctx.AS() != null) {
+            appendKey(ctx.AS());
+            if (ctx.identifier() != null) {
+                append(ctx.identifier().getText());
+            }
+            if (ctx.string() != null) {
+                append(ctx.string().getText());
+            }
+        }
+        return null;
     }
 
     @Override
     public Void visitPivotValue(GenericSQLParser.PivotValueContext ctx) {
-        return super.visitPivotValue(ctx);
+        if (ctx.literalExpression() != null) {
+            visit(ctx.literalExpression());
+        } else if (ctx.literalExpressionList() != null) {
+            visit(ctx.literalExpressionList());
+        }
+        if (ctx.AS() != null) {
+            appendKey(ctx.AS());
+            if (ctx.identifier() != null) {
+                append(ctx.identifier().getText());
+            }
+            if (ctx.string() != null) {
+                append(ctx.string().getText());
+            }
+        }
+        return null;
     }
 
     @Override
     public Void visitArgumentList(GenericSQLParser.ArgumentListContext ctx) {
-        return super.visitArgumentList(ctx);
+        if (ctx.expressionList() != null) {
+            visit(ctx.expressionList());
+        } else if (ctx.namedArgumentList() != null) {
+            visit(ctx.namedArgumentList());
+        }
+        return null;
     }
 
     @Override
     public Void visitNamedArgumentList(GenericSQLParser.NamedArgumentListContext ctx) {
-        return super.visitNamedArgumentList(ctx);
+        visitList(ctx.namedArgument(), comma());
+        return null;
     }
 
     @Override
     public Void visitNamedArguments(GenericSQLParser.NamedArgumentsContext ctx) {
-        return super.visitNamedArguments(ctx);
+        append(ctx.identifier().getText());
+        append(" => ");
+        visit(ctx.expression());
+        return null;
     }
 
     @Override
     public Void visitJoinRelation(GenericSQLParser.JoinRelationContext ctx) {
-        return super.visitJoinRelation(ctx);
+        if (ctx.crossOrInnerJoinType() != null) {
+            visit(ctx.crossOrInnerJoinType());
+        } else if (ctx.outerAndSemiJoinType() != null) {
+            visit(ctx.outerAndSemiJoinType());
+        }
+        if (ctx.bracketHint() != null) {
+            visit(ctx.bracketHint());
+        }
+        appendKey(ctx.LATERAL());
+        visit(ctx.rightRelation);
+        if (ctx.joinCriteria() != null) {
+            visit(ctx.joinCriteria());
+        }
+        return null;
     }
 
     @Override
     public Void visitCrossOrInnerJoinType(GenericSQLParser.CrossOrInnerJoinTypeContext ctx) {
-        return super.visitCrossOrInnerJoinType(ctx);
+        appendKey(ctx.getText());
+        return null;
     }
 
     @Override
     public Void visitOuterAndSemiJoinType(GenericSQLParser.OuterAndSemiJoinTypeContext ctx) {
-        return super.visitOuterAndSemiJoinType(ctx);
+        appendKey(ctx.getText());
+        return null;
     }
 
     @Override
     public Void visitBracketHint(GenericSQLParser.BracketHintContext ctx) {
-        return super.visitBracketHint(ctx);
+        append("[");
+        visitList(ctx.identifier(), comma());
+        if (ctx.primaryExpression() == null) {
+            append("|");
+            visit(ctx.primaryExpression());
+            visit(ctx.literalExpressionList());
+        }
+        append("]");
+        return null;
     }
 
     @Override
     public Void visitJoinCriteria(GenericSQLParser.JoinCriteriaContext ctx) {
-        return super.visitJoinCriteria(ctx);
+        appendKey(ctx.ON());
+        visit(ctx.expression());
+        appendKey(ctx.USING());
+        append("(");
+        visitList(ctx.identifier(), comma());
+        append(")");
+        return null;
     }
 
     @Override
@@ -413,42 +576,64 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitKeyPartitionList(GenericSQLParser.KeyPartitionListContext ctx) {
-        return super.visitKeyPartitionList(ctx);
+        appendKey(ctx.PARTITION().getText());
+        append("(");
+        visitList(ctx.keyPartition(), comma());
+        append(")");
+        return null;
     }
 
     @Override
     public Void visitTabletList(GenericSQLParser.TabletListContext ctx) {
-        return super.visitTabletList(ctx);
+        appendKey(ctx.TABLET().getText());
+        append("(");
+        for (int i = 0; i < ctx.INTEGER_VALUE().size(); i++) {
+            append(ctx.INTEGER_VALUE(i).getText());
+            if (i < ctx.INTEGER_VALUE().size() - 1) {
+                append(comma());
+            }
+        }
+        append(")");
+        return null;
     }
 
     @Override
     public Void visitReplicaList(GenericSQLParser.ReplicaListContext ctx) {
-        return super.visitReplicaList(ctx);
+        appendKey(ctx.REPLICA().getText());
+        append("(");
+        for (int i = 0; i < ctx.INTEGER_VALUE().size(); i++) {
+            append(ctx.INTEGER_VALUE(i).getText());
+            if (i < ctx.INTEGER_VALUE().size() - 1) {
+                append(comma());
+            }
+        }
+        append(")");
+        return null;
     }
 
     @Override
     public Void visitMapExpressionList(GenericSQLParser.MapExpressionListContext ctx) {
-        return super.visitMapExpressionList(ctx);
+        visitList(ctx.mapExpression(), comma());
+        return null;
     }
 
     @Override
     public Void visitMapExpression(GenericSQLParser.MapExpressionContext ctx) {
-        return super.visitMapExpression(ctx);
+        visit(ctx.key);
+        append(":");
+        visit(ctx.value);
+        return null;
     }
 
     @Override
     public Void visitExpressionDefault(GenericSQLParser.ExpressionDefaultContext ctx) {
-        if (ctx.BINARY() != null) {
-            appendKey(ctx.BINARY().getText());
-        }
+        appendKey(ctx.BINARY());
         return visit(ctx.booleanExpression());
     }
 
     @Override
     public Void visitLogicalNot(GenericSQLParser.LogicalNotContext ctx) {
-        if (ctx.NOT() != null) {
-            appendKey(ctx.NOT().getText());
-        }
+        appendKey(ctx.NOT());
         return visit(ctx.expression());
     }
 
@@ -577,9 +762,6 @@ public class FormatPrinter extends FormatPrinterBase {
         return null;
     }
 
-
-
-
     @Override
     public Void visitArrowExpression(GenericSQLParser.ArrowExpressionContext ctx) {
         return super.visitArrowExpression(ctx);
@@ -597,197 +779,362 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitColumnRef(GenericSQLParser.ColumnRefContext ctx) {
-        return super.visitColumnRef(ctx);
+        append(ctx.getText());
+        return null;
     }
 
     @Override
     public Void visitSystemVariableExpression(GenericSQLParser.SystemVariableExpressionContext ctx) {
-        return super.visitSystemVariableExpression(ctx);
+        append(ctx.getText());
+        return null;
     }
 
     @Override
     public Void visitConvert(GenericSQLParser.ConvertContext ctx) {
-        return super.visitConvert(ctx);
+        appendKey(ctx.CONVERT());
+        append("(");
+        visit(ctx.expression());
+        append(comma());
+        visit(ctx.type());
+        append(")");
+        return null;
     }
 
     @Override
     public Void visitConcat(GenericSQLParser.ConcatContext ctx) {
-        return super.visitConcat(ctx);
+        visit(ctx.left);
+        append("||");
+        visit(ctx.right);
+        return null;
     }
 
     @Override
     public Void visitSubqueryExpression(GenericSQLParser.SubqueryExpressionContext ctx) {
-        return super.visitSubqueryExpression(ctx);
+        visit(ctx.subquery());
+        return null;
     }
 
     @Override
     public Void visitLambdaFunctionExpr(GenericSQLParser.LambdaFunctionExprContext ctx) {
-        return super.visitLambdaFunctionExpr(ctx);
+        if (ctx.identifier() != null) {
+            append(ctx.identifier().getText());
+        } else if (ctx.identifierList() != null) {
+            visit(ctx.identifierList());
+        }
+        append("->");
+        visit(ctx.expression());
+        return null;
     }
 
     @Override
     public Void visitCollectionSubscript(GenericSQLParser.CollectionSubscriptContext ctx) {
-        return super.visitCollectionSubscript(ctx);
+        visit(ctx.value);
+        append("[");
+        visit(ctx.index);
+        append("]");
+        return null;
     }
 
     @Override
     public Void visitLiteral(GenericSQLParser.LiteralContext ctx) {
-        return super.visitLiteral(ctx);
+        append(ctx.getText());
+        return null;
     }
 
     @Override
     public Void visitCast(GenericSQLParser.CastContext ctx) {
-        return super.visitCast(ctx);
+        appendKey(ctx.CAST());
+        append("(");
+        visit(ctx.expression());
+        appendKey(ctx.AS());
+        visit(ctx.type());
+        append(")");
+        return null;
     }
 
     @Override
     public Void visitCollate(GenericSQLParser.CollateContext ctx) {
-        return super.visitCollate(ctx);
+        visit(ctx.primaryExpression());
+        appendKey(ctx.COLLATE());
+        if (ctx.identifier() != null) {
+            append(ctx.identifier().getText());
+        } else if (ctx.string() != null) {
+            append(ctx.string().getText());
+        }
+        return null;
     }
 
     @Override
     public Void visitParenthesizedExpression(GenericSQLParser.ParenthesizedExpressionContext ctx) {
-        return super.visitParenthesizedExpression(ctx);
+        append("(");
+        visit(ctx.expression());
+        append(")");
+        return null;
     }
 
     @Override
     public Void visitUserVariableExpression(GenericSQLParser.UserVariableExpressionContext ctx) {
-        return super.visitUserVariableExpression(ctx);
+        append(ctx.getText());
+        return null;
     }
 
     @Override
     public Void visitArrayConstructor(GenericSQLParser.ArrayConstructorContext ctx) {
-        return super.visitArrayConstructor(ctx);
+        if (ctx.arrayType() != null) {
+            visit(ctx.arrayType());
+        }
+        append("[");
+        if (ctx.expressionList() != null) {
+            visit(ctx.expressionList());
+        }
+        append("]");
+        return null;
     }
 
     @Override
     public Void visitMapConstructor(GenericSQLParser.MapConstructorContext ctx) {
-        return super.visitMapConstructor(ctx);
+        if (ctx.mapType() != null) {
+            visit(ctx.mapType());
+        } else if (ctx.MAP() != null) {
+            appendKey(ctx.MAP());
+        }
+        append("{");
+        if (ctx.mapExpressionList() != null) {
+            visit(ctx.mapExpressionList());
+        }
+        append("}");
+        return null;
     }
 
     @Override
     public Void visitArraySlice(GenericSQLParser.ArraySliceContext ctx) {
-        return super.visitArraySlice(ctx);
+        visit(ctx.primaryExpression());
+        append("[");
+        if (ctx.start != null) {
+            append(ctx.start.getText());
+        }
+        append(":");
+        if (ctx.end != null) {
+            append(ctx.end.getText());
+        }
+        append("]");
+        return null;
     }
 
     @Override
     public Void visitFunctionCallExpression(GenericSQLParser.FunctionCallExpressionContext ctx) {
-        return super.visitFunctionCallExpression(ctx);
+        visit(ctx.functionCall());
+        return null;
     }
 
     @Override
     public Void visitExists(GenericSQLParser.ExistsContext ctx) {
-        return super.visitExists(ctx);
+        appendKey(ctx.EXISTS());
+        append("(");
+        visit(ctx.queryRelation());
+        append(")");
+        return null;
     }
 
     @Override
     public Void visitSearchedCase(GenericSQLParser.SearchedCaseContext ctx) {
-        return super.visitSearchedCase(ctx);
+        appendKey(ctx.CASE());
+        visitList(ctx.whenClause(), " ");
+        if (ctx.ELSE() != null) {
+            appendKey(ctx.ELSE());
+            visit(ctx.elseExpression);
+        }
+        appendKey(ctx.END());
+        return null;
     }
 
     @Override
     public Void visitArithmeticUnary(GenericSQLParser.ArithmeticUnaryContext ctx) {
-        return super.visitArithmeticUnary(ctx);
+        append(ctx.operator.getText());
+        visit(ctx.primaryExpression());
+        return null;
     }
 
     @Override
     public Void visitNullLiteral(GenericSQLParser.NullLiteralContext ctx) {
-        return super.visitNullLiteral(ctx);
+        appendKey(ctx.NULL());
+        return null;
     }
 
     @Override
     public Void visitBooleanLiteral(GenericSQLParser.BooleanLiteralContext ctx) {
-        return super.visitBooleanLiteral(ctx);
+        appendKey(ctx.getText());
+        return null;
     }
 
     @Override
     public Void visitNumericLiteral(GenericSQLParser.NumericLiteralContext ctx) {
-        return super.visitNumericLiteral(ctx);
+        append(ctx.getText());
+        return null;
     }
 
     @Override
     public Void visitDateLiteral(GenericSQLParser.DateLiteralContext ctx) {
-        return super.visitDateLiteral(ctx);
+        appendKey(ctx.DATE());
+        appendKey(ctx.DATETIME());
+        append(ctx.getText());
+        return null;
     }
 
     @Override
     public Void visitStringLiteral(GenericSQLParser.StringLiteralContext ctx) {
-        return super.visitStringLiteral(ctx);
+        append(ctx.getText());
+        return null;
     }
 
     @Override
     public Void visitIntervalLiteral(GenericSQLParser.IntervalLiteralContext ctx) {
-        return super.visitIntervalLiteral(ctx);
+        visit(ctx.interval());
+        return null;
     }
 
     @Override
     public Void visitUnitBoundaryLiteral(GenericSQLParser.UnitBoundaryLiteralContext ctx) {
-        return super.visitUnitBoundaryLiteral(ctx);
+        appendKey(ctx.getText());
+        return null;
     }
 
     @Override
     public Void visitBinaryLiteral(GenericSQLParser.BinaryLiteralContext ctx) {
-        return super.visitBinaryLiteral(ctx);
+        append(ctx.getText());
+        return null;
     }
 
     @Override
     public Void visitParameter(GenericSQLParser.ParameterContext ctx) {
-        return super.visitParameter(ctx);
+        append(ctx.getText());
+        return null;
     }
 
     @Override
     public Void visitExtract(GenericSQLParser.ExtractContext ctx) {
-        return super.visitExtract(ctx);
+        appendKey(ctx.EXTRACT());
+        append("(");
+        append(ctx.identifier().getText());
+        appendKey(ctx.FROM());
+        visit(ctx.valueExpression());
+        append(")");
+        return null;
     }
 
     @Override
     public Void visitInformationFunction(GenericSQLParser.InformationFunctionContext ctx) {
-        return super.visitInformationFunction(ctx);
+        append(ctx.getText());
+        return null;
     }
 
     @Override
     public Void visitSpecialDateTime(GenericSQLParser.SpecialDateTimeContext ctx) {
-        return super.visitSpecialDateTime(ctx);
+        append(ctx.getText());
+        return null;
     }
 
     @Override
     public Void visitSpecialFunction(GenericSQLParser.SpecialFunctionContext ctx) {
-        return super.visitSpecialFunction(ctx);
+        append(ctx.getText());
+        return null;
     }
 
     @Override
     public Void visitAggregationFunctionCall(GenericSQLParser.AggregationFunctionCallContext ctx) {
-        return super.visitAggregationFunctionCall(ctx);
+        visit(ctx.aggregationFunction());
+        if (ctx.over() != null) {
+            visit(ctx.over());
+        }
+        return null;
     }
 
     @Override
     public Void visitWindowFunctionCall(GenericSQLParser.WindowFunctionCallContext ctx) {
-        return super.visitWindowFunctionCall(ctx);
+        visit(ctx.windowFunction());
+        visit(ctx.over());
+        return null;
     }
 
     @Override
     public Void visitTranslateFunctionCall(GenericSQLParser.TranslateFunctionCallContext ctx) {
-        return super.visitTranslateFunctionCall(ctx);
+        appendKey(ctx.TRANSLATE());
+        append("(");
+        visitList(ctx.expression(), comma());
+        append(")");
+        return null;
     }
 
     @Override
     public Void visitSimpleFunctionCall(GenericSQLParser.SimpleFunctionCallContext ctx) {
-        return super.visitSimpleFunctionCall(ctx);
+        append(ctx.qualifiedName().getText());
+        append("(");
+        for (int i = 0; i < ctx.expression().size(); i++) {
+            visit(ctx.expression(i));
+            if (i < ctx.expression().size() - 1) {
+                append(comma());
+            }
+        }
+        append(")");
+        if (ctx.over() != null) {
+            visit(ctx.over());
+        }
+        return null;
     }
 
     @Override
     public Void visitAggregationFunction(GenericSQLParser.AggregationFunctionContext ctx) {
-        return super.visitAggregationFunction(ctx);
+        append(ctx.name.getText());
+        append("(");
+        if (ctx.name.getType() == GenericSQLParser.AVG || ctx.name.getType() == GenericSQLParser.MAX ||
+                ctx.name.getType() == GenericSQLParser.MIN || ctx.name.getType() == GenericSQLParser.SUM) {
+            visit(ctx.setQuantifier());
+            visit(ctx.expression(0));
+        } else if (ctx.name.getType() == GenericSQLParser.COUNT) {
+            appendKey(ctx.ASTERISK_SYMBOL());
+            if (ctx.setQuantifier() != null) {
+                visit(ctx.setQuantifier());
+                visit(ctx.bracketHint());
+            }
+            visitList(ctx.expression(), comma());
+        } else if (ctx.name.getType() == GenericSQLParser.ARRAY_AGG) {
+            visit(ctx.setQuantifier());
+            visit(ctx.expression(0));
+            appendKey(ctx.ORDER());
+            appendKey(ctx.BY());
+            visitList(ctx.sortItem(), comma());
+        } else if (ctx.name.getType() == GenericSQLParser.ARRAY_AGG_DISTINCT) {
+            visit(ctx.expression(0));
+            appendKey(ctx.ORDER());
+            appendKey(ctx.BY());
+            visitList(ctx.sortItem(), comma());
+        } else if (ctx.name.getType() == GenericSQLParser.GROUP_CONCAT) {
+            visit(ctx.setQuantifier());
+            visitList(ctx.expression().subList(0, ctx.expression().size() - 1), comma());
+            if (ctx.ORDER() != null) {
+                appendKey(ctx.ORDER());
+                appendKey(ctx.BY());
+                visitList(ctx.sortItem(), comma());
+            }
+            if (ctx.SEPARATOR() != null) {
+                appendKey(ctx.SEPARATOR());
+                visit(ctx.expression(ctx.expression().size() - 1));
+            }
+        }
+        append(")");
+        return null;
     }
 
     @Override
     public Void visitUserVariable(GenericSQLParser.UserVariableContext ctx) {
-        return super.visitUserVariable(ctx);
+        append(ctx.getText());
+        return null;
     }
 
     @Override
     public Void visitSystemVariable(GenericSQLParser.SystemVariableContext ctx) {
-        return super.visitSystemVariable(ctx);
+        append(ctx.getText());
+        return null;
     }
 
     @Override
@@ -798,57 +1145,117 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitInformationFunctionExpression(GenericSQLParser.InformationFunctionExpressionContext ctx) {
-        return super.visitInformationFunctionExpression(ctx);
+        appendKey(ctx.getText());
+        return null;
     }
 
     @Override
     public Void visitSpecialDateTimeExpression(GenericSQLParser.SpecialDateTimeExpressionContext ctx) {
-        return super.visitSpecialDateTimeExpression(ctx);
+        appendKey(ctx.getText());
+        return null;
     }
 
     @Override
     public Void visitSpecialFunctionExpression(GenericSQLParser.SpecialFunctionExpressionContext ctx) {
-        return super.visitSpecialFunctionExpression(ctx);
+        appendKey(ctx.name.getText());
+        append("(");
+        append(ctx.unitIdentifier().getText());
+        append(comma());
+        visitList(ctx.expression(), comma());
+        append(")");
+        return null;
     }
 
     @Override
     public Void visitWindowFunction(GenericSQLParser.WindowFunctionContext ctx) {
-        return super.visitWindowFunction(ctx);
+        append(ctx.name.getText());
+        append("(");
+        visit(ctx.expression(0));
+        if (ctx.null1 != null) {
+            appendKey(ctx.null1.getText());
+        }
+        visitList(ctx.expression().subList(1, ctx.expression().size()), comma());
+        append(")");
+        if (ctx.null2 != null) {
+            appendKey(ctx.null2.getText());
+        }
+        return null;
+
     }
 
     @Override
     public Void visitWhenClause(GenericSQLParser.WhenClauseContext ctx) {
-        return super.visitWhenClause(ctx);
+        appendKey(ctx.WHEN());
+        visit(ctx.condition);
+        appendKey(ctx.THEN());
+        visit(ctx.result);
+        return null;
     }
 
     @Override
     public Void visitOver(GenericSQLParser.OverContext ctx) {
-        return super.visitOver(ctx);
+        appendKey(ctx.OVER());
+        append("(");
+        if (ctx.bracketHint() != null) {
+            visit(ctx.bracketHint());
+        }
+        if (ctx.PARTITION() != null) {
+            appendKey(ctx.PARTITION());
+            appendKey(ctx.BY(0));
+            visitList(ctx.partition, comma());
+        }
+        if (ctx.ORDER() != null) {
+            appendKey(ctx.ORDER());
+            appendKey(ctx.BY(0));
+            visitList(ctx.sortItem(), comma());
+        }
+        if (ctx.windowFrame() != null) {
+            visit(ctx.windowFrame());
+        }
+        append(")");
+        return null;
     }
 
     @Override
     public Void visitIgnoreNulls(GenericSQLParser.IgnoreNullsContext ctx) {
-        return super.visitIgnoreNulls(ctx);
+        appendKey(ctx.IGNORE());
+        appendKey(ctx.NULLS());
+        return null;
     }
 
     @Override
     public Void visitWindowFrame(GenericSQLParser.WindowFrameContext ctx) {
-        return super.visitWindowFrame(ctx);
+        appendKey(ctx.frameType.getText());
+        if (ctx.BETWEEN() != null) {
+            appendKey(ctx.BETWEEN());
+            visit(ctx.start);
+            appendKey(ctx.AND());
+            visit(ctx.end);
+        } else {
+            visit(ctx.start);
+        }
+        return null;
     }
 
     @Override
     public Void visitUnboundedFrame(GenericSQLParser.UnboundedFrameContext ctx) {
-        return super.visitUnboundedFrame(ctx);
+        appendKey(ctx.UNBOUNDED());
+        appendKey(ctx.boundType.getText());
+        return null;
     }
 
     @Override
     public Void visitCurrentRowBound(GenericSQLParser.CurrentRowBoundContext ctx) {
-        return super.visitCurrentRowBound(ctx);
+        appendKey(ctx.CURRENT());
+        appendKey(ctx.ROW());
+        return null;
     }
 
     @Override
     public Void visitBoundedFrame(GenericSQLParser.BoundedFrameContext ctx) {
-        return super.visitBoundedFrame(ctx);
+        visit(ctx.expression());
+        appendKey(ctx.boundType.getText());
+        return null;
     }
 
     @Override
@@ -861,141 +1268,123 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitLiteralExpressionList(GenericSQLParser.LiteralExpressionListContext ctx) {
+        append("(");
+        for (int i = 0; i < ctx.literalExpression().size(); i++) {
+            visit(ctx.literalExpression(i));
+            if (i < ctx.literalExpression().size() - 1) {
+                append(comma());
+            }
+        }
+        append(")");
         return null;
     }
 
     @Override
     public Void visitKeyPartition(GenericSQLParser.KeyPartitionContext ctx) {
-        return super.visitKeyPartition(ctx);
+        append(ctx.partitionColName.getText());
+        append("=");
+        visit(ctx.partitionColValue);
+        return null;
     }
-    //
-    //    @Override
-    //    public Void visitVarType(GenericSQLParser.VarTypeContext ctx) {
-    //        return super.visitVarType(ctx);
-    //    }
-
-    //    @Override
-    //    public Void visitString(GenericSQLParser.StringContext ctx) {
-    //        return super.visitString(ctx);
-    //    }
-
-    //    @Override
-    //    public Void visitBinary(GenericSQLParser.BinaryContext ctx) {
-    //        return super.visitBinary(ctx);
-    //    }
-
-    //    @Override
-    //    public Void visitComparisonOperator(GenericSQLParser.ComparisonOperatorContext ctx) {
-    //        return super.visitComparisonOperator(ctx);
-    //    }
-    //
-    //    @Override
-    //    public Void visitBooleanValue(GenericSQLParser.BooleanValueContext ctx) {
-    //        return super.visitBooleanValue(ctx);
-    //    }
 
     @Override
     public Void visitInterval(GenericSQLParser.IntervalContext ctx) {
-        return super.visitInterval(ctx);
-    }
-
-    //    @Override
-    //    public Void visitUnitIdentifier(GenericSQLParser.UnitIdentifierContext ctx) {
-    //        return super.visitUnitIdentifier(ctx);
-    //    }
-    //
-    //    @Override
-    //    public Void visitUnitBoundary(GenericSQLParser.UnitBoundaryContext ctx) {
-    //        return super.visitUnitBoundary(ctx);
-    //    }
-
-    @Override
-    public Void visitType(GenericSQLParser.TypeContext ctx) {
-        return super.visitType(ctx);
+        appendKey(ctx.INTERVAL().getText());
+        visit(ctx.value);
+        visit(ctx.from);
+        return null;
     }
 
     @Override
     public Void visitArrayType(GenericSQLParser.ArrayTypeContext ctx) {
-        return super.visitArrayType(ctx);
+        appendKey(ctx.ARRAY().getText());
+        append("<");
+        visit(ctx.type());
+        append(">");
+        return null;
     }
 
     @Override
     public Void visitMapType(GenericSQLParser.MapTypeContext ctx) {
-        return super.visitMapType(ctx);
-    }
-
-    @Override
-    public Void visitSubfieldDesc(GenericSQLParser.SubfieldDescContext ctx) {
-        return super.visitSubfieldDesc(ctx);
+        appendKey(ctx.MAP().getText());
+        append("<");
+        visitList(ctx.type(), comma());
+        append(">");
+        return null;
     }
 
     @Override
     public Void visitSubfieldDescs(GenericSQLParser.SubfieldDescsContext ctx) {
-        return super.visitSubfieldDescs(ctx);
+        visitList(ctx.subfieldDesc(), comma());
+        return null;
     }
 
     @Override
     public Void visitStructType(GenericSQLParser.StructTypeContext ctx) {
-        return super.visitStructType(ctx);
+        appendKey(ctx.STRUCT().getText());
+        append("<");
+        visit(ctx.subfieldDescs());
+        append(">");
+        return null;
     }
 
     @Override
     public Void visitTypeParameter(GenericSQLParser.TypeParameterContext ctx) {
-        return super.visitTypeParameter(ctx);
-    }
-
-    @Override
-    public Void visitBaseType(GenericSQLParser.BaseTypeContext ctx) {
-        return super.visitBaseType(ctx);
+        intoParentheses(() -> append(ctx.INTEGER_VALUE().getText()));
+        return null;
     }
 
     @Override
     public Void visitDecimalType(GenericSQLParser.DecimalTypeContext ctx) {
-        return super.visitDecimalType(ctx);
+        append(ctx.getText());
+        return null;
     }
-
-//    @Override
-//    public Void visitQualifiedName(GenericSQLParser.QualifiedNameContext ctx) {
-//        return super.visitQualifiedName(ctx);
-//    }
 
     @Override
     public Void visitUnquotedIdentifier(GenericSQLParser.UnquotedIdentifierContext ctx) {
-        return super.visitUnquotedIdentifier(ctx);
+        append(ctx.getText());
+        return null;
     }
 
     @Override
     public Void visitDigitIdentifier(GenericSQLParser.DigitIdentifierContext ctx) {
-        return super.visitDigitIdentifier(ctx);
+        append(ctx.getText());
+        return null;
     }
 
     @Override
     public Void visitBackQuotedIdentifier(GenericSQLParser.BackQuotedIdentifierContext ctx) {
-        return super.visitBackQuotedIdentifier(ctx);
+        append(ctx.getText());
+        return null;
     }
 
     @Override
     public Void visitIdentifierList(GenericSQLParser.IdentifierListContext ctx) {
-        return super.visitIdentifierList(ctx);
+        visitList(ctx.identifier(), comma());
+        return null;
     }
 
     @Override
     public Void visitIdentifierOrString(GenericSQLParser.IdentifierOrStringContext ctx) {
-        return super.visitIdentifierOrString(ctx);
+        append(ctx.getText());
+        return null;
     }
 
     @Override
     public Void visitDecimalValue(GenericSQLParser.DecimalValueContext ctx) {
-        return super.visitDecimalValue(ctx);
+        append(ctx.getText());
+        return null;
     }
 
     @Override
     public Void visitDoubleValue(GenericSQLParser.DoubleValueContext ctx) {
-        return super.visitDoubleValue(ctx);
+        append(ctx.getText());
+        return null;
     }
 
     @Override
     public Void visitIntegerValue(GenericSQLParser.IntegerValueContext ctx) {
-        return super.visitIntegerValue(ctx);
+        append(ctx.getText());
+        return null;
     }
 }

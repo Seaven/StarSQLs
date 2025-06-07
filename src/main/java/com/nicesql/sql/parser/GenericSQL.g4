@@ -442,10 +442,10 @@ windowFunction
     | name = CUME_DIST '(' ')'
     | name = PERCENT_RANK '(' ')'
     | name = NTILE  '(' expression? ')'
-    | name = LEAD  '(' (expression ignoreNulls? (',' expression)*)? ')' ignoreNulls?
-    | name = LAG '(' (expression ignoreNulls? (',' expression)*)? ')' ignoreNulls?
-    | name = FIRST_VALUE '(' (expression ignoreNulls? (',' expression)*)? ')' ignoreNulls?
-    | name = LAST_VALUE '(' (expression ignoreNulls? (',' expression)*)? ')' ignoreNulls?
+    | name = LEAD  '(' (expression null1 = ignoreNulls? (',' expression)*)? ')' null2 = ignoreNulls?
+    | name = LAG '(' (expression null1 = ignoreNulls? (',' expression)*)? ')' null2 = ignoreNulls?
+    | name = FIRST_VALUE '(' (expression null1 = ignoreNulls? (',' expression)*)? ')' null2 = ignoreNulls?
+    | name = LAST_VALUE '(' (expression null1 = ignoreNulls? (',' expression)*)? ')' null2 = ignoreNulls?
     ;
 
 whenClause
