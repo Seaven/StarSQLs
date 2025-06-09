@@ -31,7 +31,7 @@ public class FormatPrinterBase extends GenericSQLBaseVisitor<Void> {
 
     protected List<StringBuilder> formatSQLs = Lists.newArrayList();
 
-    protected StringBuilder currentSQL = new StringBuilder();
+    protected StringBuilder currentSQL;
 
     protected int indentLevel = 0;
 
@@ -61,17 +61,17 @@ public class FormatPrinterBase extends GenericSQLBaseVisitor<Void> {
     }
 
     protected FormatPrinterBase appendKey(String key) {
-        return appendKey(key, true);
+        return appendKey(key, true, true);
     }
 
     protected FormatPrinterBase appendKey(TerminalNode node) {
         if (node == null) {
             return this;
         }
-        return appendKey(node.getText(), true);
+        return appendKey(node.getText(), true, true);
     }
 
-    protected FormatPrinterBase appendKey(String key, boolean autoPrefixSpace) {
+    protected FormatPrinterBase appendKey(String key, boolean prefixSpace, boolean suffixSpace) {
         if (key == null) {
             return this;
         }
@@ -80,14 +80,17 @@ public class FormatPrinterBase extends GenericSQLBaseVisitor<Void> {
             key = key.toUpperCase();
         }
 
-        if (autoPrefixSpace && currentSQL.length() > 0) {
+        if (prefixSpace && !currentSQL.isEmpty()) {
             char l = currentSQL.charAt(currentSQL.length() - 1);
             if (' ' != l && l != '\n' && l != '\r' && l != '\t') {
                 currentSQL.append(' ');
             }
         }
         keywords.add(key);
-        currentSQL.append(key).append(" ");
+        currentSQL.append(key);
+        if (suffixSpace) {
+            currentSQL.append(" ");
+        }
         return this;
     }
 
@@ -115,18 +118,14 @@ public class FormatPrinterBase extends GenericSQLBaseVisitor<Void> {
     }
 
     private GenericSQLParser.SqlStatementsContext parse(String sql) {
-        GenericSQLLexer lexer = new GenericSQLLexer(new CaseInsensitiveStream(CharStreams.fromString(sql)));
+        GenericSQLLexer lexer = new GenericSQLLexer(CharStreams.fromString(sql));
         GenericSQLParser parser = new GenericSQLParser(new CommonTokenStream(lexer));
         return parser.sqlStatements();
     }
 
     public String format(String sql) {
         GenericSQLParser.SqlStatementsContext context = parse(sql);
-        for (GenericSQLParser.StatementContext stmt : context.statement()) {
-            stmt.accept(this);
-            formatSQLs.add(currentSQL);
-            currentSQL = new StringBuilder();
-        }
+        context.accept(this);
         return formatSQLs.stream()
                 .map(StringBuilder::toString)
                 .map(String::trim)

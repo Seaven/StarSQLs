@@ -44,28 +44,36 @@ public class FormatPrinter extends FormatPrinterBase {
     }
 
     @Override
-    public Void visitSqlStatements(GenericSQLParser.SqlStatementsContext ctx) {
-        return super.visitSqlStatements(ctx);
-    }
-
-    @Override
     public Void visitStatement(GenericSQLParser.StatementContext ctx) {
-        return super.visitStatement(ctx);
+        currentSQL = new StringBuilder();
+        visit(ctx.queryStatement());
+        if (ctx.SEMICOLON() != null) {
+            append(ctx.SEMICOLON().getText());
+        }
+        if (ctx.EOF() != null) {
+            append(ctx.EOF().getText());
+        }
+        visit(ctx.emptyStatement());
+        formatSQLs.add(currentSQL);
+        return null;
     }
 
     @Override
     public Void visitEmptyStatement(GenericSQLParser.EmptyStatementContext ctx) {
-        return super.visitEmptyStatement(ctx);
+        append(ctx.SEMICOLON().getText());
+        return null;
     }
 
     @Override
     public Void visitSubfieldName(GenericSQLParser.SubfieldNameContext ctx) {
-        return super.visitSubfieldName(ctx);
+        append(ctx.getText());
+        return null;
     }
 
     @Override
     public Void visitNestedFieldName(GenericSQLParser.NestedFieldNameContext ctx) {
-        return super.visitNestedFieldName(ctx);
+        append(ctx.getText());
+        return null;
     }
 
     @Override
@@ -154,7 +162,7 @@ public class FormatPrinter extends FormatPrinterBase {
     public Void visitSortItem(GenericSQLParser.SortItemContext ctx) {
         visit(ctx.expression());
         if (ctx.ordering != null) {
-            appendKey(ctx.ordering.getText());
+            appendKey(ctx.ordering.getText(), false, false);
         }
         if (ctx.nullOrdering != null) {
             appendKey(ctx.NULLS().getText());
@@ -182,7 +190,7 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitQuerySpecification(GenericSQLParser.QuerySpecificationContext ctx) {
-        appendKey(ctx.SELECT().getText(), false);
+        appendKey(ctx.SELECT().getText(), false, true);
         visit(ctx.setQuantifier());
         visitList(ctx.selectItem(), comma());
         appendNewLine();
@@ -289,7 +297,7 @@ public class FormatPrinter extends FormatPrinterBase {
             append(ctx.qualifiedName().getText());
             append(".");
         }
-        append("*");
+        append(ctx.ASTERISK_SYMBOL().getText());
         if (ctx.excludeClause() != null) {
             visit(ctx.excludeClause());
         }
@@ -311,6 +319,7 @@ public class FormatPrinter extends FormatPrinterBase {
             if (ctx.LATERAL(i) != null) {
                 appendKey(ctx.LATERAL(i));
             }
+            visit(ctx.relation(i));
         }
         return null;
     }
@@ -693,7 +702,9 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitBetween(GenericSQLParser.BetweenContext ctx) {
-        appendKey(ctx.NOT()).appendKey(ctx.BETWEEN());
+        appendKey(ctx.NOT());
+        visit(ctx.value);
+        appendKey(ctx.BETWEEN());
         visit(ctx.lower);
         appendKey(ctx.AND());
         return visit(ctx.upper);
@@ -717,9 +728,9 @@ public class FormatPrinter extends FormatPrinterBase {
     public Void visitDereference(GenericSQLParser.DereferenceContext ctx) {
         visit(ctx.base);
         if (ctx.DOT_IDENTIFIER() != null) {
-            appendKey(ctx.DOT_IDENTIFIER());
+            append(ctx.DOT_IDENTIFIER().getText());
         } else {
-            appendKey(".");
+            append(".");
         }
         append(ctx.fieldName.getText());
         return null;
@@ -727,14 +738,14 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitSimpleCase(GenericSQLParser.SimpleCaseContext ctx) {
-        appendKey(ctx.CASE());
+        appendKey(ctx.CASE().getText(), false, true);
         visit(ctx.caseExpr);
         visitList(ctx.whenClause(), " ");
         if (ctx.ELSE() != null) {
             appendKey(ctx.ELSE());
             visit(ctx.elseExpression);
         }
-        appendKey(ctx.END());
+        appendKey(ctx.END().getText(), true, false);
         return null;
     }
 
@@ -1054,7 +1065,9 @@ public class FormatPrinter extends FormatPrinterBase {
                 visit(ctx.setQuantifier());
                 visit(ctx.expression(0));
             } else if (ctx.name.getType() == GenericSQLParser.COUNT) {
-                appendKey(ctx.ASTERISK_SYMBOL());
+                if (ctx.ASTERISK_SYMBOL() != null) {
+                    append(ctx.ASTERISK_SYMBOL().getText());
+                }
                 if (ctx.setQuantifier() != null) {
                     visit(ctx.setQuantifier());
                     visit(ctx.bracketHint());

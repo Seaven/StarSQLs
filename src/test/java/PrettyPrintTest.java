@@ -16,9 +16,12 @@ import com.nicesql.sql.format.FormatPrinter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.io.File;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 public class PrettyPrintTest extends PrinterTestBase {
@@ -26,27 +29,30 @@ public class PrettyPrintTest extends PrinterTestBase {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("caseNames")
-    public void testCase(String caseName) {
+    public void testCase(String caseName, String resultName) {
         FormatPrinter printer = new FormatPrinter(options);
         String sql = sql(caseName);
-        String expected = result(caseName).trim();
+        String expected = result(resultName).trim();
         String actual = printer.format(sql).trim();
 
         Assertions.assertEquals(expected, actual);
     }
 
-    public static Stream<String> caseNames() {
-        List<String> list = Lists.newArrayList();
-        for (int i = 0; i < 22; i++) {
-            list.add("tpch/q" + (i + 1) + ".sql");
+    public static Stream<Arguments> caseNames() {
+        List<Arguments> list = Lists.newArrayList();
+        String path = Objects.requireNonNull(
+                Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource("case/")).getPath());
+
+        File file = new File(path + "tpch");
+        for (String s : Objects.requireNonNull(file.list())) {
+            list.add(Arguments.arguments("tpch/" + s, "strict_tpch/" + s));
         }
         return list.stream();
     }
 
-
     @Test
     public void testSelect() {
-        testCase("tpch/q1.sql");
+        testCase("tpch/q7.sql", "strict_tpch/q7.sql");
     }
 
 }

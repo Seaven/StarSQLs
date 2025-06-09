@@ -1,0 +1,44 @@
+-- complex_case_2.sql
+-- Complex SQL: nested subqueries, all join types, window/aggregate functions, type casting, expressions
+WITH recent_orders AS (
+    SELECT o.id, o.customer_id, o.created_at
+    FROM orders o
+    WHERE o.created_at > CURRENT_DATE - INTERVAL '30' DAY
+),
+order_stats AS (
+    SELECT customer_id, COUNT(*) AS order_count, SUM(total) AS total_spent
+    FROM orders
+    GROUP BY customer_id
+)
+SELECT
+    c.id AS customer_id,
+    c.name,
+    ro.id AS recent_order_id,
+    os.order_count,
+    os.total_spent,
+    AVG(p.price) OVER (PARTITION BY c.id) AS avg_price,
+    COUNT(DISTINCT oi.product_id) AS unique_products,
+    MAX(o.created_at) AS last_order,
+    CASE WHEN os.total_spent > 5000 THEN 'VIP' ELSE 'REGULAR' END AS customer_type,
+    CAST(o.status AS VARCHAR(20)) AS status_str,
+    o.status IN ('shipped', 'delivered') AS shipped_or_delivered,
+    EXISTS (SELECT 1 FROM feedback f WHERE f.customer_id = c.id) AS has_feedback,
+    (SELECT COUNT(*) FROM returns r WHERE r.customer_id = c.id) AS return_count
+FROM
+    customers c
+    LEFT JOIN recent_orders ro ON c.id = ro.customer_id
+    RIGHT JOIN order_stats os ON c.id = os.customer_id
+    FULL OUTER JOIN orders o ON c.id = o.customer_id
+    LEFT ANTI JOIN blacklist b ON c.id = b.customer_id
+    LEFT SEMI JOIN gold_customers g ON c.id = g.customer_id
+    JOIN order_items oi ON o.id = oi.order_id
+    JOIN products p ON oi.product_id = p.id
+WHERE
+    c.status = 'active'
+    AND o.created_at > DATE '2024-01-01'
+GROUP BY
+    c.id, c.name, ro.id, os.order_count, os.total_spent, o.status
+ORDER BY
+    os.total_spent DESC, c.name
+LIMIT 100;
+

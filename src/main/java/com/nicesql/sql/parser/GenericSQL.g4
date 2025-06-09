@@ -27,6 +27,10 @@
 grammar GenericSQL;
 import GenericLex;
 
+options {
+    caseInsensitive = true;
+}
+
 sqlStatements
     : statement+ EOF
     ;
