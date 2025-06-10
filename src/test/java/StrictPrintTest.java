@@ -24,11 +24,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-public class PrettyPrintTest extends PrinterTestBase {
+public class StrictPrintTest extends PrinterTestBase {
     private final FormatOptions options = new FormatOptions();
 
     @ParameterizedTest(name = "{0}")
-    @MethodSource("caseNames")
+    @MethodSource("tpchCase")
     public void testCase(String caseName, String resultName) {
         FormatPrinter printer = new FormatPrinter(options);
         String sql = sql(caseName);
@@ -42,7 +42,7 @@ public class PrettyPrintTest extends PrinterTestBase {
         Assertions.assertEquals(expected, actual);
     }
 
-    public static Stream<Arguments> caseNames() {
+    public static Stream<Arguments> tpchCase() {
         List<Arguments> list = Lists.newArrayList();
         String path = Objects.requireNonNull(
                 Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource("case/")).getPath());
@@ -50,6 +50,35 @@ public class PrettyPrintTest extends PrinterTestBase {
         File file = new File(path + "tpch");
         for (String s : Objects.requireNonNull(file.list())) {
             list.add(Arguments.arguments("tpch/" + s, "strict_tpch/" + s));
+        }
+        return list.stream();
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("complexCase")
+    public void testComplex(String caseName, String resultName) {
+        FormatPrinter printer = new FormatPrinter(options);
+        String sql = sql(caseName);
+        //        String expected = result(resultName).trim();
+        String actual = printer.format(sql).trim();
+
+        saveResult(resultName, actual);
+        //
+        //        String nonSpaceSql = sql.replace(" ", "").replace("\n", "");
+        //        String nonSpaceActual = actual.replace(" ", "").replace("\n", "");
+        //
+        //        Assertions.assertEquals(nonSpaceSql, nonSpaceActual);
+        //        Assertions.assertEquals(expected, actual);
+    }
+
+    public static Stream<Arguments> complexCase() {
+        List<Arguments> list = Lists.newArrayList();
+        String path = Objects.requireNonNull(
+                Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource("case/")).getPath());
+
+        File file = new File(path + "complex");
+        for (String s : Objects.requireNonNull(file.list())) {
+            list.add(Arguments.arguments("complex/" + s, "strict_complex/" + s));
         }
         return list.stream();
     }

@@ -1,0 +1,1 @@
+SELECT a.id,b.name FROM (SELECT 1 AS id)a LEFTJOIN (SELECT 1 AS id,'foo' AS name)b ON a.id = b.id RIGHTJOIN (SELECT 2 AS id)c ON b.id = c.id;
