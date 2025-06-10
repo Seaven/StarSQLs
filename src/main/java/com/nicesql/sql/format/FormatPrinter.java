@@ -162,7 +162,7 @@ public class FormatPrinter extends FormatPrinterBase {
     public Void visitSortItem(GenericSQLParser.SortItemContext ctx) {
         visit(ctx.expression());
         if (ctx.ordering != null) {
-            appendKey(ctx.ordering.getText(), false, false);
+            appendKey(ctx.ordering.getText(), true, false);
         }
         if (ctx.nullOrdering != null) {
             appendKey(ctx.NULLS().getText());

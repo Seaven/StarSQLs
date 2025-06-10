@@ -35,6 +35,8 @@ public class PrettyPrintTest extends PrinterTestBase {
         String expected = result(resultName).trim();
         String actual = printer.format(sql).trim();
 
+        saveResult(resultName, actual);
+
         Assertions.assertEquals(expected, actual);
     }
 

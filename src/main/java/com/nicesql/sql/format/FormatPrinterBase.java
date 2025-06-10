@@ -13,7 +13,6 @@
 package com.nicesql.sql.format;
 
 import com.google.common.collect.Lists;
-import com.nicesql.sql.parser.CaseInsensitiveStream;
 import com.nicesql.sql.parser.GenericSQLBaseVisitor;
 import com.nicesql.sql.parser.GenericSQLLexer;
 import com.nicesql.sql.parser.GenericSQLParser;
