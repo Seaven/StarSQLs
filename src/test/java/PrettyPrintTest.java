@@ -35,8 +35,10 @@ public class PrettyPrintTest extends PrinterTestBase {
         String expected = result(resultName).trim();
         String actual = printer.format(sql).trim();
 
-        saveResult(resultName, actual);
+        String nonSpaceSql = sql.replace(" ", "").replace("\n", "");
+        String nonSpaceActual = actual.replace(" ", "").replace("\n", "");
 
+        Assertions.assertEquals(nonSpaceSql, nonSpaceActual);
         Assertions.assertEquals(expected, actual);
     }
 

@@ -347,7 +347,7 @@ public class FormatPrinter extends FormatPrinterBase {
         visit(ctx.partitionNames());
         visit(ctx.tabletList());
         visit(ctx.replicaList());
-        if (ctx.AS() != null) {
+        if (ctx.alias != null) {
             appendKey(ctx.AS());
             append(ctx.alias.getText());
         }
@@ -381,11 +381,9 @@ public class FormatPrinter extends FormatPrinterBase {
             appendKey(ctx.ASSERT_ROWS());
         }
         visit(ctx.subquery());
-        if (ctx.AS() != null) {
+        if (ctx.alias != null) {
             appendKey(ctx.AS());
             append(ctx.alias.getText());
-        }
-        if (ctx.columnAliases() != null) {
             visit(ctx.columnAliases());
         }
         return null;
@@ -515,9 +513,7 @@ public class FormatPrinter extends FormatPrinterBase {
         }
         appendKey(ctx.LATERAL());
         visit(ctx.rightRelation);
-        if (ctx.joinCriteria() != null) {
-            visit(ctx.joinCriteria());
-        }
+        visit(ctx.joinCriteria());
         return null;
     }
 
@@ -548,10 +544,14 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitJoinCriteria(GenericSQLParser.JoinCriteriaContext ctx) {
-        appendKey(ctx.ON());
-        visit(ctx.expression());
-        appendKey(ctx.USING());
-        intoParentheses(() -> visitList(ctx.identifier(), comma()));
+        if (ctx.ON() != null) {
+            appendKey(ctx.ON());
+            visit(ctx.expression());
+        }
+        if (ctx.USING() != null) {
+            appendKey(ctx.USING());
+            intoParentheses(() -> visitList(ctx.identifier(), comma()));
+        }
         return null;
     }
 
@@ -688,6 +688,7 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitInSubquery(GenericSQLParser.InSubqueryContext ctx) {
+        visit(ctx.value);
         appendKey(ctx.NOT()).appendKey(ctx.IN());
         intoParentheses(() -> intoLevel(() -> visit(ctx.queryRelation())));
         return null;
@@ -695,6 +696,7 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitInList(GenericSQLParser.InListContext ctx) {
+        visit(ctx.value);
         appendKey(ctx.NOT()).appendKey(ctx.IN());
         intoParentheses(() -> visit(ctx.expressionList()));
         return null;
@@ -702,8 +704,8 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitBetween(GenericSQLParser.BetweenContext ctx) {
-        appendKey(ctx.NOT());
         visit(ctx.value);
+        appendKey(ctx.NOT());
         appendKey(ctx.BETWEEN());
         visit(ctx.lower);
         appendKey(ctx.AND());
@@ -712,6 +714,7 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitLike(GenericSQLParser.LikeContext ctx) {
+        visit(ctx.value);
         appendKey(ctx.NOT());
         appendKey(ctx.op.getText());
         return visit(ctx.pattern);
@@ -830,7 +833,7 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitCast(GenericSQLParser.CastContext ctx) {
-        appendKey(ctx.CAST());
+        appendKey(ctx.CAST().getText(), true, false);
         intoParentheses(() -> {
             visit(ctx.expression());
             appendKey(ctx.AS());
@@ -1361,6 +1364,12 @@ public class FormatPrinter extends FormatPrinterBase {
     @Override
     public Void visitIntegerValue(GenericSQLParser.IntegerValueContext ctx) {
         append(ctx.getText());
+        return null;
+    }
+
+    @Override
+    public Void visitType(GenericSQLParser.TypeContext ctx) {
+        appendKey(ctx.getText(), true, false);
         return null;
     }
 }

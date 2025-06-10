@@ -6,7 +6,7 @@ select
     total_revenue
 from
     supplier,
-    (	select
+    (    select
              l_suppkey as supplier_no,
              sum(l_extendedprice * (1 - l_discount)) as total_revenue
          from
@@ -22,7 +22,7 @@ where
     select
         max(total_revenue)
     from
-        (	select
+        (    select
                  l_suppkey as supplier_no,
                  sum(l_extendedprice * (1 - l_discount)) as total_revenue
              from
