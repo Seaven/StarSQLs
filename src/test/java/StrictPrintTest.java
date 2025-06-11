@@ -59,16 +59,16 @@ public class StrictPrintTest extends PrinterTestBase {
     public void testComplex(String caseName, String resultName) {
         FormatPrinter printer = new FormatPrinter(options);
         String sql = sql(caseName);
-        //        String expected = result(resultName).trim();
+        String expected = result(resultName).trim();
         String actual = printer.format(sql).trim();
 
         saveResult(resultName, actual);
-        //
-        //        String nonSpaceSql = sql.replace(" ", "").replace("\n", "");
-        //        String nonSpaceActual = actual.replace(" ", "").replace("\n", "");
-        //
-        //        Assertions.assertEquals(nonSpaceSql, nonSpaceActual);
-        //        Assertions.assertEquals(expected, actual);
+
+        String nonSpaceSql = sql.replace(" ", "").replace("\n", "");
+        String nonSpaceActual = actual.replace(" ", "").replace("\n", "");
+
+        Assertions.assertEquals(nonSpaceSql, nonSpaceActual);
+        Assertions.assertEquals(expected, actual);
     }
 
     public static Stream<Arguments> complexCase() {
@@ -88,4 +88,8 @@ public class StrictPrintTest extends PrinterTestBase {
         testCase("tpch/q7.sql", "strict_tpch/q7.sql");
     }
 
+    @Test
+    public void testWindow() {
+        testComplex("complex/cte_window_function.sql", "strict_complex/cte_window_function.sql");
+    }
 }

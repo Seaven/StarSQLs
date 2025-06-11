@@ -314,7 +314,7 @@ SIMPLE_COMMENT
     ;
 
 BRACKETED_COMMENT
-    : '/*'([ \r\n\t\u3000]* | ~'+' .*?) '*/' -> channel(HIDDEN)
+    : '/*'([ \r\n\t\u3000]* | ~'+' .*?) '*/' -> channel(2)
     ;
 
 OPTIMIZER_HINT

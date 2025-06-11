@@ -1149,11 +1149,15 @@ public class FormatPrinter extends FormatPrinterBase {
     public Void visitWindowFunction(GenericSQLParser.WindowFunctionContext ctx) {
         append(ctx.name.getText());
         intoParentheses(() -> {
-            visit(ctx.expression(0));
-            if (ctx.null1 != null) {
-                appendKey(ctx.null1.getText());
+            if (ctx.expression() != null) {
+                visit(ctx.expression(0));
+                if (ctx.null1 != null) {
+                    appendKey(ctx.null1.getText());
+                }
+                if (ctx.expression().size() > 1) {
+                    visitList(ctx.expression().subList(1, ctx.expression().size()), comma());
+                }
             }
-            visitList(ctx.expression().subList(1, ctx.expression().size()), comma());
         });
         if (ctx.null2 != null) {
             appendKey(ctx.null2.getText());
