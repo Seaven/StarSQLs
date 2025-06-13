@@ -80,6 +80,13 @@ public class FormatPrinterBase extends GenericSQLBaseVisitor<Void> {
         return appendKey(node.getText(), true, true);
     }
 
+    protected FormatPrinterBase appendKey(TerminalNode node, boolean prefixSpace, boolean suffixSpace) {
+        if (node == null) {
+            return this;
+        }
+        return appendKey(node.getText(), prefixSpace, suffixSpace);
+    }
+
     protected FormatPrinterBase appendKey(String key, boolean prefixSpace, boolean suffixSpace) {
         if (key == null) {
             return this;
@@ -120,6 +127,19 @@ public class FormatPrinterBase extends GenericSQLBaseVisitor<Void> {
         return this;
     }
 
+    @Override
+    public Void visitTerminal(TerminalNode node) {
+        if (node.getSymbol().getType() == GenericSQLParser.EOF) {
+            return null; // Ignore EOF token
+        }
+        if (",".equals(node.getText().trim())) {
+            append(comma());
+            return null;
+        }
+        appendKey(node.getText());
+        return null;
+    }
+
     protected String comma() {return ",";}
 
     protected String newLine() {
@@ -154,7 +174,9 @@ public class FormatPrinterBase extends GenericSQLBaseVisitor<Void> {
             if (t.getChannel() != Token.HIDDEN_CHANNEL) {
                 index += t.getText().chars().filter(c -> !Character.isWhitespace(c)).count();
             } else {
-                final String c = t.getText().startsWith("--") ? "/*" + t.getText().substring(2) + "*/" : t.getText();
+                // replace -- to /* */, because -- will comment the real sql
+                final String c = t.getText().startsWith("--") ? "/*" + t.getText().substring(2).trim() + "*/\n"
+                        : t.getText();
                 comments.compute(index, (k, s) -> Strings.nullToEmpty(s) + c);
             }
         }
@@ -171,11 +193,13 @@ public class FormatPrinterBase extends GenericSQLBaseVisitor<Void> {
             int index = entry.getKey().intValue();
             String comment = entry.getValue();
             // find index
-            int find = count;
-            while (count < index) {
-                CharSequence s = sql.subSequence(find, find + index - count);
-                count += (int) s.chars().filter(c -> !Character.isWhitespace(c)).count();
-                find = count;
+            int find = start;
+            while (find < sql.length() && count < index) {
+                char c = sql.charAt(find);
+                if (!Character.isWhitespace(c)) {
+                    count++;
+                }
+                find++;
             }
             sb.append(sql, start, find);
             sb.append(comment);

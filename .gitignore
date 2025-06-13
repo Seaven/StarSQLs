@@ -5,4 +5,4 @@ gen/
 *.tokens
 .vscode/
 logs/
-
+.cursor/
