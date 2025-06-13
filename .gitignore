@@ -3,3 +3,6 @@ target/
 NiceSQL.iml
 gen/
 *.tokens
+.vscode/
+logs/
+
