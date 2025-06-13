@@ -1,1 +1,0 @@
-SELECT 1+2*3 AS expr1,'abc' || 'def' AS expr2,col1/col2 AS expr3 FROM (SELECT 10 AS col1,2 AS col2)t;

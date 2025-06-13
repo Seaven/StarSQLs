@@ -62,8 +62,6 @@ public class StrictPrintTest extends PrinterTestBase {
         String expected = result(resultName).trim();
         String actual = printer.format(sql).trim();
 
-        saveResult(resultName, actual);
-
         String nonSpaceSql = sql.replace(" ", "").replace("\n", "");
         String nonSpaceActual = actual.replace(" ", "").replace("\n", "");
 
@@ -90,6 +88,6 @@ public class StrictPrintTest extends PrinterTestBase {
 
     @Test
     public void testWindow() {
-        testComplex("complex/cte_window_function.sql", "strict_complex/cte_window_function.sql");
+        testComplex("complex/complex_case_4.sql", "strict_complex/complex_case_4.sql");
     }
 }

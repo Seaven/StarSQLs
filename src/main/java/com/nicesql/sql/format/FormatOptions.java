@@ -17,7 +17,7 @@ public class FormatOptions {
 
     public boolean isFormat = true;
 
-    public String newLine = "\n";
+    public String newLine = "";
 
     public String indent = "    ";
 

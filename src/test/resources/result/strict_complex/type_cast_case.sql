@@ -1,1 +1,0 @@
-SELECT CAST('123' AS INT) AS int_col, CASE WHEN 1 = 1 THEN 'yes' ELSE 'no' END AS case_col, ARRAY <>[1,2,3] AS arr_col;

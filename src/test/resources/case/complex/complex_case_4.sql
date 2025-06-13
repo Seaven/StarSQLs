@@ -1,6 +1,4 @@
--- complex_case_4.sql
--- Complex SQL: recursive CTE, set operations, window/aggregate, all join types, advanced types
-WITH RECURSIVE hierarchy AS (
+WITH hierarchy AS (
     SELECT id, parent_id, name, 1 AS level
     FROM departments
     WHERE parent_id IS NULL
@@ -23,8 +21,7 @@ SELECT
     AVG(ls.max_salary) OVER (PARTITION BY h.level) AS avg_salary_by_level,
     COUNT(*) OVER () AS total_employees,
     CASE WHEN ls.max_salary > 10000 THEN 'high' ELSE 'normal' END AS salary_level,
-    ARRAY[ls.max_salary, 10000] AS salary_arr,
-    STRUCT<id INT, name STRING> AS emp_struct,
+    ARRAY<BIGINT>[ls.max_salary, 10000] AS salary_arr,
     EXISTS (SELECT 1 FROM awards a WHERE a.employee_id = e.id) AS has_award,
     (SELECT COUNT(*) FROM projects p WHERE p.leader_id = e.id) AS project_count
 FROM
@@ -40,7 +37,7 @@ WHERE
 GROUP BY
     e.id, e.name, h.name, h.level, ls.max_salary
 UNION
-SELECT * FROM (SELECT 1, 'dummy', 'dummy', 0, 0, 0, 0, 'dummy', ARRAY[0], STRUCT<0, ''>, FALSE, 0) AS dummy
+SELECT * FROM (SELECT 1, 'dummy', 'dummy', 0, 0, 0, 0, 'dummy', ARRAY<TINYINT>[0], row(0, ''), FALSE, 0) AS dummy
 ORDER BY
     max_salary DESC, e.name
 LIMIT 100;

@@ -12,20 +12,28 @@
 
 package com.nicesql.sql.format;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.nicesql.sql.parser.GenericSQLBaseVisitor;
 import com.nicesql.sql.parser.GenericSQLLexer;
 import com.nicesql.sql.parser.GenericSQLParser;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class FormatPrinterBase extends GenericSQLBaseVisitor<Void> {
+    private static final Logger logger = LogManager.getLogger(FormatPrinterBase.class);
+
     protected FormatOptions options;
 
     protected List<StringBuilder> formatSQLs = Lists.newArrayList();
@@ -35,6 +43,8 @@ public class FormatPrinterBase extends GenericSQLBaseVisitor<Void> {
     protected int indentLevel = 0;
 
     protected Set<String> keywords = HashSet.newHashSet(12);
+
+    private final Map<Long, String> comments = Maps.newLinkedHashMap();
 
     protected void intoLevel(Runnable func) {
         indentLevel++;
@@ -117,17 +127,72 @@ public class FormatPrinterBase extends GenericSQLBaseVisitor<Void> {
     }
 
     private GenericSQLParser.SqlStatementsContext parse(String sql) {
+        logger.debug("Parsing SQL: {}", sql);
         GenericSQLLexer lexer = new GenericSQLLexer(CharStreams.fromString(sql));
-        GenericSQLParser parser = new GenericSQLParser(new CommonTokenStream(lexer));
-        return parser.sqlStatements();
+        CommonTokenStream tokenStream = new CommonTokenStream(lexer);
+        initComments(tokenStream);
+        GenericSQLParser parser = new GenericSQLParser(tokenStream);
+
+        SQLSyntaxErrorListener errorListener = new SQLSyntaxErrorListener();
+        parser.removeErrorListeners();
+        parser.addErrorListener(errorListener);
+
+        GenericSQLParser.SqlStatementsContext context = parser.sqlStatements();
+
+        if (errorListener.hasErrors()) {
+            String errorMsg = String.join("\n", errorListener.getErrors());
+            logger.warn("SQL parsing error: {}", errorMsg);
+        }
+
+        return context;
+    }
+
+    private void initComments(CommonTokenStream tokenStream) {
+        tokenStream.fill();
+        long index = 0;
+        for (Token t : tokenStream.getTokens()) {
+            if (t.getChannel() != Token.HIDDEN_CHANNEL) {
+                index += t.getText().chars().filter(c -> !Character.isWhitespace(c)).count();
+            } else {
+                final String c = t.getText().startsWith("--") ? "/*" + t.getText().substring(2) + "*/" : t.getText();
+                comments.compute(index, (k, s) -> Strings.nullToEmpty(s) + c);
+            }
+        }
+    }
+
+    private String insertComments(String sql) {
+        if (comments.isEmpty()) {
+            return sql;
+        }
+        StringBuilder sb = new StringBuilder();
+        int count = 0;
+        int start = 0;
+        for (var entry : comments.entrySet()) {
+            int index = entry.getKey().intValue();
+            String comment = entry.getValue();
+            // find index
+            int find = count;
+            while (count < index) {
+                CharSequence s = sql.subSequence(find, find + index - count);
+                count += (int) s.chars().filter(c -> !Character.isWhitespace(c)).count();
+                find = count;
+            }
+            sb.append(sql, start, find);
+            sb.append(comment);
+            start = find;
+        }
+        sb.append(sql, start, sql.length());
+        return sb.toString();
     }
 
     public String format(String sql) {
         GenericSQLParser.SqlStatementsContext context = parse(sql);
         context.accept(this);
-        return formatSQLs.stream()
+        String formatSQL = formatSQLs.stream()
                 .map(StringBuilder::toString)
                 .map(String::trim)
                 .collect(Collectors.joining("\n"));
+        return insertComments(formatSQL);
     }
 }
+

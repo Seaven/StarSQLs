@@ -314,11 +314,11 @@ SIMPLE_COMMENT
     ;
 
 BRACKETED_COMMENT
-    : '/*'([ \r\n\t\u3000]* | ~'+' .*?) '*/' -> channel(2)
+    : '/*'([ \r\n\t\u3000]* | ~'+' .*?) '*/' -> channel(HIDDEN)
     ;
 
 OPTIMIZER_HINT
-    : '/*+' .*? '*/' -> channel(2)
+    : '/*+' .*? '*/' -> channel(HIDDEN)
     ;
 
 SEMICOLON: ';';
@@ -326,5 +326,5 @@ SEMICOLON: ';';
 DOTDOTDOT: '...';
 
 WS
-    : [ \r\n\t\u3000]+ -> channel(HIDDEN)
+    : [ \r\n\t\u3000]+ -> channel(2)
     ;

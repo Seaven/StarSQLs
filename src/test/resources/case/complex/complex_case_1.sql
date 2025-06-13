@@ -1,5 +1,3 @@
--- complex_case_1.sql
--- Complex SQL: multiple joins, window, subquery, types, expressions, functions
 WITH sales_cte AS (
     SELECT s.seller_id, SUM(s.amount) AS total_sales
     FROM sales s
@@ -21,7 +19,7 @@ SELECT
     p.price,
     COALESCE(o.discount, 0) AS discount,
     CASE WHEN o.status = 'shipped' THEN TRUE ELSE FALSE END AS shipped_flag,
-    ARRAY[1,2,3] AS arr,
+    ARRAY<INT>[1,2,3] AS arr,
     MAP{'a':1, 'b':2} AS mp,
     s.total_sales,
     SUM(oi.quantity * p.price) OVER (PARTITION BY c.id) AS total_spent,
