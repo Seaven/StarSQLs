@@ -15,19 +15,17 @@ package com.nicesql.sql.format;
 public class FormatOptions {
     public boolean isCompact = true;
 
-    public boolean isFormat = false;
+    public String indent = "";
 
-    public String newLine = "";
+    public boolean spaceBeforeComma = false;
 
-    public String indent = "    ";
-
-    public int spaceBeforeComma = 0;
-
-    public int spaceAfterComma = 0;
+    public boolean spaceAfterComma = false;
 
     public int maxLineLength = 120;
 
     public boolean upperCaseKeyWords = false;
+
+    public boolean lowerCaseKeyWords = false;
 
     // ================================
     // Expressions keywords
