@@ -13,9 +13,9 @@
 package com.nicesql.sql.format;
 
 public class FormatOptions {
-    public boolean isCompact = false;
+    public boolean isCompact = true;
 
-    public boolean isFormat = true;
+    public boolean isFormat = false;
 
     public String newLine = "";
 
@@ -23,51 +23,68 @@ public class FormatOptions {
 
     public int spaceBeforeComma = 0;
 
-    public int spaceAfterComma = 1;
+    public int spaceAfterComma = 0;
 
     public int maxLineLength = 120;
 
     public boolean upperCaseKeyWords = false;
 
-    public boolean expandFunctionArgs = false;
+    // ================================
+    // Expressions keywords
+    // ================================
+    public boolean breakFunctionArgs = false;
 
-    public boolean expandCaseWhen = false;
+    public boolean alignFunctionArgs = false;
 
-    public boolean expandInList = false;
+    public boolean breakCaseWhen = false;
 
-    public boolean expandBetween = false;
+    public boolean alignCaseWhen = false;
 
-    public boolean expandAndOr = false;
+    public boolean breakInList = false;
 
+    public boolean alignInList = false;
+
+    public boolean breakBetween = false;
+
+    public boolean alignBetween = false;
+
+    public boolean breakAndOr = false;
+
+    public boolean alignAndOr = false;
+
+    // ================================
+    // Statements keywords
+    // ================================
     public boolean breakExplain = false;
 
     public boolean breakCTE = true;
 
-    public boolean breakJoinKeyWord = false;
+    public boolean breakJoinRelations = false;
 
     public boolean breakJoinOn = false;
 
     public boolean breakSelectItems = false;
 
+    public boolean alignSelectItems = false;
+
+    public boolean alignSelectAs = false;
+
     public boolean breakGroupByItems = false;
+
+    public boolean alignGroupBy = false;
 
     public boolean breakOrderBy = false;
 
     public boolean breakLimit = false;
 
-    public boolean alignSelectItems = false;
-
-    public boolean alignSelectAs = false;
-
     public boolean alignJoinRelations = false;
 
     public boolean alignJoinRelationsAs = false;
 
-    public boolean alignWhere  = false;
-
-    public boolean alignGroupBy = false;
-
     public boolean formatSubquery = false;
 
+    // ================================
+    // simplify flags
+    // ================================
     public boolean simplifyBrackets = false;
 }
