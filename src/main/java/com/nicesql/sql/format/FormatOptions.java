@@ -21,7 +21,7 @@ public class FormatOptions {
 
     public boolean spaceAfterComma = false;
 
-    public int maxLineLength = 120;
+    public int maxLineLength = Integer.MAX_VALUE;
 
     public boolean upperCaseKeyWords = false;
 
@@ -73,6 +73,8 @@ public class FormatOptions {
 
     public boolean breakOrderBy = false;
 
+    public boolean alignOrderBy = false;
+
     public boolean breakLimit = false;
 
     public boolean alignJoinRelations = false;
@@ -85,4 +87,48 @@ public class FormatOptions {
     // simplify flags
     // ================================
     public boolean simplifyBrackets = false;
+
+    public static FormatOptions allFormatOptions() {
+        FormatOptions options = new FormatOptions();
+        options.isCompact = false;
+        options.indent = "    ";
+        options.spaceBeforeComma = true;
+        options.spaceAfterComma = true;
+        options.maxLineLength = 120;
+        options.upperCaseKeyWords = true;
+        options.lowerCaseKeyWords = false;
+
+        // Expressions keywords
+        options.breakFunctionArgs = true;
+        options.alignFunctionArgs = true;
+        options.breakCaseWhen = true;
+        options.alignCaseWhen = true;
+        options.breakInList = true;
+        options.alignInList = true;
+        options.breakBetween = true;
+        options.alignBetween = true;
+        options.breakAndOr = true;
+        options.alignAndOr = true;
+
+        // Statements keywords
+        options.breakExplain = true;
+        options.breakCTE = true;
+        options.breakJoinRelations = true;
+        options.breakJoinOn = true;
+        options.breakSelectItems = true;
+        options.alignSelectItems = true;
+        options.alignSelectAs = true;
+        options.breakGroupByItems = true;
+        options.alignGroupBy = true;
+        options.breakOrderBy = true;
+        options.alignOrderBy = true;
+        options.breakLimit = true;
+        options.alignJoinRelations = true;
+        options.alignJoinRelationsAs = true;
+        options.formatSubquery = true;
+
+        // simplify flags
+        options.simplifyBrackets = true;
+        return options;
+    }
 }

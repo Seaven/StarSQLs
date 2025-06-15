@@ -84,7 +84,7 @@ public class SQLBuilder {
         }
         if (prefixSpace && !sql.isEmpty()) {
             char l = sql.charAt(sql.length() - 1);
-            if (!Character.isSpaceChar(l)) {
+            if (!Character.isWhitespace(l) && l != '(') {
                 sql.append(' ');
             }
         }
@@ -96,20 +96,14 @@ public class SQLBuilder {
         return this;
     }
 
-    public SQLBuilder appendIndent() {
-        append(Strings.repeat(options.indent, indentLevel));
-        return this;
-    }
-
     public SQLBuilder appendNewLine() {
-        append(newLine);
+        append(newLine());
         return this;
     }
 
     public SQLBuilder appendBreak(boolean isBreak) {
         if (isBreak) {
             appendNewLine();
-            appendIndent();
         }
         return this;
     }
@@ -126,7 +120,7 @@ public class SQLBuilder {
     }
 
     public String newLine() {
-        return newLine;
+        return newLine + Strings.repeat(options.indent, indentLevel);
     }
 
     @Override

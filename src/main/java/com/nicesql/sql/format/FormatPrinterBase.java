@@ -22,16 +22,12 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class FormatPrinterBase extends GenericSQLBaseVisitor<Void> {
-    private static final Logger logger = LogManager.getLogger(FormatPrinterBase.class);
-
     protected FormatOptions options;
 
     protected SQLBuilder sql;
@@ -42,8 +38,8 @@ public class FormatPrinterBase extends GenericSQLBaseVisitor<Void> {
 
     protected String comma() {return sql.comma();}
 
-    protected String newBreak(boolean isBreak) {
-        return sql.newBreak(isBreak);
+    protected String commaBreak(boolean isBreak) {
+        return comma() + sql.newBreak(isBreak);
     }
 
     protected String newLine() {
@@ -64,7 +60,6 @@ public class FormatPrinterBase extends GenericSQLBaseVisitor<Void> {
     }
 
     private GenericSQLParser.SqlStatementsContext parse(String sql) {
-        logger.debug("Parsing SQL: {}", sql);
         GenericSQLLexer lexer = new GenericSQLLexer(CharStreams.fromString(sql));
         CommonTokenStream tokenStream = new CommonTokenStream(lexer);
         initComments(tokenStream);
@@ -78,7 +73,7 @@ public class FormatPrinterBase extends GenericSQLBaseVisitor<Void> {
 
         if (errorListener.hasErrors()) {
             String errorMsg = String.join("\n", errorListener.getErrors());
-            logger.warn("SQL parsing error: {}", errorMsg);
+            throw new IllegalArgumentException(errorMsg);
         }
 
         return context;
