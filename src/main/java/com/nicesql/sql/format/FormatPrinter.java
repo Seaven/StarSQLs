@@ -93,12 +93,9 @@ public class FormatPrinter extends FormatPrinterBase {
             sql.appendKey(ctx.ORDER());
             sql.appendKey(ctx.BY());
             sql.appendBreak(options.breakOrderBy);
-            visitList(ctx.sortItem(), comma());
+            sql.intoLevel(() -> visitList(ctx.sortItem(), commaBreak(options.breakOrderBy)));
         }
-        if (ctx.limitElement() != null) {
-            sql.appendBreak(options.breakLimit);
-            visit(ctx.limitElement());
-        }
+        visit(ctx.limitElement());
         return null;
     }
 
@@ -705,7 +702,7 @@ public class FormatPrinter extends FormatPrinterBase {
         sql.appendKey(ctx.CASE().getText(), false, true);
         visit(ctx.caseExpr);
         sql.appendBreak(options.breakCaseWhen);
-        visitList(ctx.whenClause(), options.breakCaseWhen ? newLine() : " ");
+        sql.intoLevel(() -> visitList(ctx.whenClause(), options.breakCaseWhen ? newLine() : " "));
         if (ctx.ELSE() != null) {
             sql.appendBreak(options.breakCaseWhen);
             sql.appendKey(ctx.ELSE());
@@ -890,7 +887,7 @@ public class FormatPrinter extends FormatPrinterBase {
     public Void visitSearchedCase(GenericSQLParser.SearchedCaseContext ctx) {
         sql.appendKey(ctx.CASE(), false, true);
         sql.appendBreak(options.breakCaseWhen);
-        visitList(ctx.whenClause(), options.breakCaseWhen ? newLine() : " ");
+        sql.intoLevel(() -> visitList(ctx.whenClause(), options.breakCaseWhen ? newLine() : " "));
         if (ctx.ELSE() != null) {
             sql.appendBreak(options.breakCaseWhen);
             sql.appendKey(ctx.ELSE());

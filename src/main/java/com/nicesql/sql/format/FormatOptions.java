@@ -75,8 +75,6 @@ public class FormatOptions {
 
     public boolean alignOrderBy = false;
 
-    public boolean breakLimit = false;
-
     public boolean alignJoinRelations = false;
 
     public boolean alignJoinRelationsAs = false;
