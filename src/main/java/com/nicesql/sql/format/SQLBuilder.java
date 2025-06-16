@@ -11,14 +11,17 @@ public class SQLBuilder {
 
     private final String comma;
     private final String newLine;
+    private final String prefixUnit;
 
     private final StringBuilder sql;
     private final Set<String> keywords = HashSet.newHashSet(12);
     private int indentLevel = 0;
+    private String linePrefix = "";
 
     public SQLBuilder(FormatOptions options) {
         this.options = options;
         this.sql = new StringBuilder();
+        this.prefixUnit = options.isCompact ? "" : " ";
 
         String temp = ",";
         if (options.spaceAfterComma) {
@@ -37,6 +40,16 @@ public class SQLBuilder {
         indentLevel--;
     }
 
+    public void intoPrefix(Runnable func) {
+        int oldIndentLevel = indentLevel;
+        indentLevel = 0;
+        int count = sql.length() - sql.lastIndexOf("\n") - 1;
+        linePrefix = Strings.repeat(prefixUnit, count);
+        func.run();
+        linePrefix = "";
+        indentLevel = oldIndentLevel;
+    }
+
     public void intoParentheses(Runnable func) {
         append("(");
         func.run();
@@ -45,12 +58,6 @@ public class SQLBuilder {
 
     public SQLBuilder append(String str) {
         sql.append(str);
-        return this;
-    }
-
-    public SQLBuilder appendSpace(String str) {
-        sql.append(str);
-        sql.append(" ");
         return this;
     }
 
@@ -85,13 +92,13 @@ public class SQLBuilder {
         if (prefixSpace && !sql.isEmpty()) {
             char l = sql.charAt(sql.length() - 1);
             if (!Character.isWhitespace(l) && l != '(') {
-                sql.append(' ');
+                append(" ");
             }
         }
         keywords.add(key);
-        sql.append(key);
+        append(key);
         if (suffixSpace) {
-            sql.append(" ");
+            append(" ");
         }
         return this;
     }
@@ -108,11 +115,6 @@ public class SQLBuilder {
         return this;
     }
 
-    public SQLBuilder appendItem(String... args) {
-        sql.append(String.join(comma(), args));
-        return this;
-    }
-
     public String comma() {return comma;}
 
     public String newBreak(boolean isBreak) {
@@ -120,7 +122,7 @@ public class SQLBuilder {
     }
 
     public String newLine() {
-        return newLine + Strings.repeat(options.indent, indentLevel);
+        return newLine + Strings.repeat(options.indent, indentLevel) + linePrefix;
     }
 
     @Override

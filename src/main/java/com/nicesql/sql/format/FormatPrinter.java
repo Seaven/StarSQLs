@@ -14,7 +14,6 @@ package com.nicesql.sql.format;
 
 import com.nicesql.sql.parser.GenericSQLParser;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.List;
@@ -92,9 +91,12 @@ public class FormatPrinter extends FormatPrinterBase {
             sql.appendNewLine();
             sql.appendKey(ctx.ORDER());
             sql.appendKey(ctx.BY());
-            sql.appendBreak(options.breakOrderBy);
-            sql.intoLevel(() -> visitList(ctx.sortItem(), commaBreak(options.breakOrderBy)));
+            sql.intoLevel(() -> {
+                sql.appendBreak(options.breakOrderBy);
+                visitList(ctx.sortItem(), commaBreak(options.breakOrderBy));
+            });
         }
+        sql.appendNewLine();
         visit(ctx.limitElement());
         return null;
     }
@@ -142,7 +144,7 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitSubquery(GenericSQLParser.SubqueryContext ctx) {
-        sql.intoParentheses(() -> sql.intoLevel(() -> visit(ctx.queryRelation())));
+        sql.intoParentheses(() -> sql.intoPrefix(() -> visit(ctx.queryRelation())));
         return null;
     }
 
@@ -232,9 +234,9 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitCommonTableExpression(GenericSQLParser.CommonTableExpressionContext ctx) {
-        sql.appendSpace(ctx.name.getText());
+        sql.append(ctx.name.getText()).append(" ");
         visit(ctx.columnAliases());
-        sql.appendSpace("AS");
+        sql.appendKey(ctx.AS());
         sql.intoParentheses(() -> sql.intoLevel(() -> {
             sql.appendNewLine();
             visit(ctx.queryRelation());
@@ -509,8 +511,7 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitColumnAliases(GenericSQLParser.ColumnAliasesContext ctx) {
-        sql.intoParentheses(
-                () -> sql.appendItem(ctx.identifier().stream().map(RuleContext::toString).toArray(String[]::new)));
+        sql.intoParentheses(() -> visitList(ctx.identifier(), comma()));
         return null;
     }
 
@@ -601,11 +602,6 @@ public class FormatPrinter extends FormatPrinterBase {
         return null;
     }
 
-    //    @Override
-    //    public Void visitBooleanExpressionDefault(GenericSQLParser.BooleanExpressionDefaultContext ctx) {
-    //        return super.visitBooleanExpressionDefault(ctx);
-    //    }
-
     @Override
     public Void visitIsNull(GenericSQLParser.IsNullContext ctx) {
         visit(ctx.booleanExpression());
@@ -636,7 +632,7 @@ public class FormatPrinter extends FormatPrinterBase {
     public Void visitTupleInSubquery(GenericSQLParser.TupleInSubqueryContext ctx) {
         sql.intoParentheses(() -> visitList(ctx.expression(), comma()));
         sql.appendKey(ctx.NOT()).appendKey(ctx.IN());
-        sql.intoParentheses(() -> sql.intoLevel(() -> visit(ctx.queryRelation())));
+        sql.intoParentheses(() -> sql.intoPrefix(() -> visit(ctx.queryRelation())));
         return null;
     }
 
@@ -653,7 +649,7 @@ public class FormatPrinter extends FormatPrinterBase {
     public Void visitInSubquery(GenericSQLParser.InSubqueryContext ctx) {
         visit(ctx.value);
         sql.appendKey(ctx.NOT()).appendKey(ctx.IN());
-        sql.intoParentheses(() -> sql.intoLevel(() -> visit(ctx.queryRelation())));
+        sql.intoParentheses(() -> sql.intoPrefix(() -> visit(ctx.queryRelation())));
         return null;
     }
 
@@ -701,13 +697,15 @@ public class FormatPrinter extends FormatPrinterBase {
     public Void visitSimpleCase(GenericSQLParser.SimpleCaseContext ctx) {
         sql.appendKey(ctx.CASE().getText(), false, true);
         visit(ctx.caseExpr);
-        sql.appendBreak(options.breakCaseWhen);
-        sql.intoLevel(() -> visitList(ctx.whenClause(), options.breakCaseWhen ? newLine() : " "));
-        if (ctx.ELSE() != null) {
+        sql.intoLevel(() -> {
             sql.appendBreak(options.breakCaseWhen);
-            sql.appendKey(ctx.ELSE());
-            visit(ctx.elseExpression);
-        }
+            visitList(ctx.whenClause(), options.breakCaseWhen ? newLine() : " ");
+            if (ctx.ELSE() != null) {
+                sql.appendBreak(options.breakCaseWhen);
+                sql.appendKey(ctx.ELSE());
+                visit(ctx.elseExpression);
+            }
+        });
         sql.appendBreak(options.breakCaseWhen);
         sql.appendKey(ctx.END().getText(), true, false);
         return null;
@@ -879,20 +877,22 @@ public class FormatPrinter extends FormatPrinterBase {
     @Override
     public Void visitExists(GenericSQLParser.ExistsContext ctx) {
         sql.appendKey(ctx.EXISTS());
-        sql.intoParentheses(() -> sql.intoLevel(() -> visit(ctx.queryRelation())));
+        sql.intoParentheses(() -> sql.intoPrefix(() -> visit(ctx.queryRelation())));
         return null;
     }
 
     @Override
     public Void visitSearchedCase(GenericSQLParser.SearchedCaseContext ctx) {
         sql.appendKey(ctx.CASE(), false, true);
-        sql.appendBreak(options.breakCaseWhen);
-        sql.intoLevel(() -> visitList(ctx.whenClause(), options.breakCaseWhen ? newLine() : " "));
-        if (ctx.ELSE() != null) {
+        sql.intoLevel(() -> {
             sql.appendBreak(options.breakCaseWhen);
-            sql.appendKey(ctx.ELSE());
-            visit(ctx.elseExpression);
-        }
+            visitList(ctx.whenClause(), options.breakCaseWhen ? newLine() : " ");
+            if (ctx.ELSE() != null) {
+                sql.appendBreak(options.breakCaseWhen);
+                sql.appendKey(ctx.ELSE());
+                visit(ctx.elseExpression);
+            }
+        });
         sql.appendBreak(options.breakCaseWhen);
         sql.appendKey(ctx.END(), true, false);
         return null;

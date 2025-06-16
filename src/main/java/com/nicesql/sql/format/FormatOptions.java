@@ -120,7 +120,6 @@ public class FormatOptions {
         options.alignGroupBy = true;
         options.breakOrderBy = true;
         options.alignOrderBy = true;
-        options.breakLimit = true;
         options.alignJoinRelations = true;
         options.alignJoinRelationsAs = true;
         options.formatSubquery = true;
