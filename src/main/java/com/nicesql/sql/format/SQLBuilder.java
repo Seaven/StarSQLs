@@ -17,6 +17,7 @@ public class SQLBuilder {
     private final Set<String> keywords = HashSet.newHashSet(12);
     private int indentLevel = 0;
     private String linePrefix = "";
+    private int lastBreakPoint = 0;
 
     public SQLBuilder(FormatOptions options) {
         this.options = options;
@@ -56,9 +57,31 @@ public class SQLBuilder {
         append(")");
     }
 
+    public void intoAutoBreak(Runnable func) {
+        lastBreakPoint = sql.length(); // Record current position as a possible break point
+        func.run();
+        lastBreakPoint = 0; // Reset after the function execution
+    }
+
     public SQLBuilder append(String str) {
         sql.append(str);
+        breakMaxLength();
         return this;
+    }
+
+    private void breakMaxLength() {
+        if (options.isCompact || options.maxLineLength <= 0) {
+            return;
+        }
+        int currentLineLength = sql.length() - sql.lastIndexOf("\n");
+        if (currentLineLength > options.maxLineLength && lastBreakPoint > 0) {
+            // If current line exceeds max length, break at the last break point
+            String newLine = sql.substring(lastBreakPoint);
+            String newContent = newLine.substring(lastBreakPoint);
+            sql.setLength(lastBreakPoint);
+            sql.append(newLine());
+            sql.append(newContent);
+        }
     }
 
     public SQLBuilder appendKey(String key) {
@@ -115,7 +138,9 @@ public class SQLBuilder {
         return this;
     }
 
-    public String comma() {return comma;}
+    public String comma() {
+        return comma;
+    }
 
     public String newBreak(boolean isBreak) {
         return isBreak ? newLine() : "";

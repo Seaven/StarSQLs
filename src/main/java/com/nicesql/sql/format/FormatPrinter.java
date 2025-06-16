@@ -34,6 +34,19 @@ public class FormatPrinter extends FormatPrinterBase {
         return null;
     }
 
+    protected Void visitListAutoBreak(List<? extends ParserRuleContext> contexts, String splitStr) {
+        for (int i = 0; i < contexts.size(); i++) {
+            final int j = i;
+            sql.intoAutoBreak(() -> {
+                visit(contexts.get(j));
+                if (j != contexts.size() - 1) {
+                    sql.append(splitStr);
+                }
+            });
+        }
+        return null;
+    }
+
     @Override
     public Void visit(ParseTree tree) {
         if (tree != null) {
@@ -93,7 +106,7 @@ public class FormatPrinter extends FormatPrinterBase {
             sql.appendKey(ctx.BY());
             sql.intoLevel(() -> {
                 sql.appendBreak(options.breakOrderBy);
-                visitList(ctx.sortItem(), commaBreak(options.breakOrderBy));
+                visitListAutoBreak(ctx.sortItem(), commaBreak(options.breakOrderBy));
             });
         }
         sql.appendNewLine();
@@ -197,9 +210,7 @@ public class FormatPrinter extends FormatPrinterBase {
         if (ctx.where != null) {
             sql.appendNewLine();
             sql.appendKey(ctx.WHERE());
-            sql.intoLevel(() -> {
-                visit(ctx.where);
-            });
+            sql.intoLevel(() -> visit(ctx.where));
         }
         if (ctx.groupingElement() != null) {
             sql.appendNewLine();
@@ -252,29 +263,33 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitSelectSingle(GenericSQLParser.SelectSingleContext ctx) {
-        visit(ctx.expression());
-        if (ctx.AS() != null) {
-            sql.appendKey(ctx.AS());
-            if (ctx.identifier() != null) {
-                sql.append(ctx.identifier().getText());
+        sql.intoAutoBreak(() -> {
+            visit(ctx.expression());
+            if (ctx.AS() != null) {
+                sql.appendKey(ctx.AS());
+                if (ctx.identifier() != null) {
+                    sql.append(ctx.identifier().getText());
+                }
+                if (ctx.string() != null) {
+                    sql.append(ctx.string().getText());
+                }
             }
-            if (ctx.string() != null) {
-                sql.append(ctx.string().getText());
-            }
-        }
+        });
         return null;
     }
 
     @Override
     public Void visitSelectAll(GenericSQLParser.SelectAllContext ctx) {
-        if (ctx.qualifiedName() != null) {
-            sql.append(ctx.qualifiedName().getText());
-            sql.append(".");
-        }
-        sql.append(ctx.ASTERISK_SYMBOL().getText());
-        if (ctx.excludeClause() != null) {
-            visit(ctx.excludeClause());
-        }
+        sql.intoAutoBreak(() -> {
+            if (ctx.qualifiedName() != null) {
+                sql.append(ctx.qualifiedName().getText());
+                sql.append(".");
+            }
+            sql.append(ctx.ASTERISK_SYMBOL().getText());
+            if (ctx.excludeClause() != null) {
+                visit(ctx.excludeClause());
+            }
+        });
         return null;
     }
 
@@ -297,16 +312,26 @@ public class FormatPrinter extends FormatPrinterBase {
     @Override
     public Void visitNonBracketsRelation(GenericSQLParser.NonBracketsRelationContext ctx) {
         visit(ctx.relationPrimary());
-        return visitList(ctx.joinRelation(), "");
+        if (options.breakJoinRelations) {
+            sql.appendBreak(options.breakJoinRelations);
+            visitList(ctx.joinRelation(), sql.newBreak(options.breakJoinRelations));
+        } else {
+            sql.intoPrefix(() -> visitList(ctx.joinRelation(), newLine()));
+        }
+        return null;
     }
 
     @Override
     public Void visitBracketsRelation(GenericSQLParser.BracketsRelationContext ctx) {
         sql.intoParentheses(() -> {
             visit(ctx.relationPrimary());
-            visitList(ctx.joinRelation(), "");
+            if (options.breakJoinRelations) {
+                sql.appendBreak(options.breakJoinRelations);
+                visitList(ctx.joinRelation(), sql.newBreak(options.breakJoinRelations));
+            } else {
+                sql.intoPrefix(() -> visitList(ctx.joinRelation(), newLine()));
+            }
         });
-        visit(ctx.relationPrimary());
         return null;
     }
 
@@ -469,7 +494,6 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitJoinRelation(GenericSQLParser.JoinRelationContext ctx) {
-        sql.appendBreak(options.breakJoinRelations);
         if (ctx.crossOrInnerJoinType() != null) {
             visit(ctx.crossOrInnerJoinType());
         } else if (ctx.outerAndSemiJoinType() != null) {
@@ -1122,7 +1146,6 @@ public class FormatPrinter extends FormatPrinterBase {
             sql.appendKey(ctx.null2.getText());
         }
         return null;
-
     }
 
     @Override
@@ -1380,13 +1403,13 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitSingleGroupingSet(GenericSQLParser.SingleGroupingSetContext ctx) {
-        visitList(ctx.expressionList().expression(), commaBreak(options.breakGroupByItems));
+        visitListAutoBreak(ctx.expressionList().expression(), commaBreak(options.breakGroupByItems));
         return null;
     }
 
     @Override
     public Void visitGroupingSet(GenericSQLParser.GroupingSetContext ctx) {
-        sql.intoParentheses(() -> visitList(ctx.expression(), commaBreak(options.breakGroupByItems)));
+        sql.intoParentheses(() -> visitListAutoBreak(ctx.expression(), commaBreak(options.breakGroupByItems)));
         return null;
     }
 

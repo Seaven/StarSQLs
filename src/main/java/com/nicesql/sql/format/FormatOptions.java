@@ -36,19 +36,11 @@ public class FormatOptions {
 
     public boolean breakCaseWhen = false;
 
-    public boolean alignCaseWhen = false;
-
     public boolean breakInList = false;
-
-    public boolean alignInList = false;
 
     public boolean breakBetween = false;
 
-    public boolean alignBetween = false;
-
     public boolean breakAndOr = false;
-
-    public boolean alignAndOr = false;
 
     // ================================
     // Statements keywords
@@ -63,21 +55,9 @@ public class FormatOptions {
 
     public boolean breakSelectItems = false;
 
-    public boolean alignSelectItems = false;
-
-    public boolean alignSelectAs = false;
-
     public boolean breakGroupByItems = false;
 
-    public boolean alignGroupBy = false;
-
     public boolean breakOrderBy = false;
-
-    public boolean alignOrderBy = false;
-
-    public boolean alignJoinRelations = false;
-
-    public boolean alignJoinRelationsAs = false;
 
     public boolean formatSubquery = false;
 
@@ -100,13 +80,9 @@ public class FormatOptions {
         options.breakFunctionArgs = true;
         options.alignFunctionArgs = true;
         options.breakCaseWhen = true;
-        options.alignCaseWhen = true;
         options.breakInList = true;
-        options.alignInList = true;
         options.breakBetween = true;
-        options.alignBetween = true;
         options.breakAndOr = true;
-        options.alignAndOr = true;
 
         // Statements keywords
         options.breakExplain = true;
@@ -114,14 +90,8 @@ public class FormatOptions {
         options.breakJoinRelations = true;
         options.breakJoinOn = true;
         options.breakSelectItems = true;
-        options.alignSelectItems = true;
-        options.alignSelectAs = true;
         options.breakGroupByItems = true;
-        options.alignGroupBy = true;
         options.breakOrderBy = true;
-        options.alignOrderBy = true;
-        options.alignJoinRelations = true;
-        options.alignJoinRelationsAs = true;
         options.formatSubquery = true;
 
         // simplify flags
