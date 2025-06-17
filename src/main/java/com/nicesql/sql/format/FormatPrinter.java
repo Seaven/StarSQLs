@@ -108,8 +108,11 @@ public class FormatPrinter extends FormatPrinterBase {
                 visitListAutoBreak(ctx.sortItem(), commaBreak(options.breakOrderBy));
             });
         }
+        if (ctx.limitElement() != null) {
+            sql.appendNewLine();
+            visit(ctx.limitElement());
+        }
         sql.appendNewLine();
-        visit(ctx.limitElement());
         return null;
     }
 
@@ -302,10 +305,7 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitRelations(GenericSQLParser.RelationsContext ctx) {
-        visit(ctx.getChild(0));
-        for (int i = 1; i < ctx.getChildCount(); i++) {
-            visit(ctx.getChild(i));
-        }
+        sql.intoAutoBreak(() -> super.visitRelations(ctx));
         return null;
     }
 
@@ -350,7 +350,7 @@ public class FormatPrinter extends FormatPrinterBase {
         visit(ctx.replicaList());
         if (ctx.alias != null) {
             sql.appendKey(ctx.AS());
-            sql.append(ctx.alias.getText(), true, true);
+            sql.append(ctx.alias.getText(), true, false);
         }
         visit(ctx.bracketHint());
         if (ctx.BEFORE() != null) {
@@ -511,14 +511,14 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitBracketHint(GenericSQLParser.BracketHintContext ctx) {
-        sql.append("[");
+        sql.appendKey("[");
         visitList(ctx.identifier(), comma());
         if (ctx.primaryExpression() == null) {
             sql.append("|");
             visit(ctx.primaryExpression());
             visit(ctx.literalExpressionList());
         }
-        sql.append("]");
+        sql.appendKey("]");
         return null;
     }
 

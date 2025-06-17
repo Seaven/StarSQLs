@@ -2,6 +2,7 @@ package com.nicesql.sql.format;
 
 import com.google.common.base.Strings;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -91,7 +92,11 @@ public class SQLBuilder {
         if (options.isCompact || options.maxLineLength <= 0) {
             return;
         }
-        int currentLineLength = sql.length() - sql.lastIndexOf("\n");
+        int preLineIndex = sql.lastIndexOf("\n");
+        int currentLineLength = sql.length() - preLineIndex;
+        if (StringUtils.isBlank(sql.substring(preLineIndex, lastBreakPoint).trim())) {
+            return;
+        }
         if (currentLineLength > options.maxLineLength && lastBreakPoint > 0) {
             // If current line exceeds max length, break at the last break point
             String content = sql.substring(lastBreakPoint);

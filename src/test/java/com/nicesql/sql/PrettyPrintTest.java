@@ -73,11 +73,11 @@ public class PrettyPrintTest extends PrinterTestBase {
 
     @Test
     public void testSelect() {
-        testCase("tpch/q7.sql", "pretty_tpch/q7.sql");
+        testCase("tpch/q8.sql", "pretty_tpch/q8.sql");
     }
 
     @Test
     public void testWindow() {
-        testComplex("complex/complex_case_1.sql", "pretty_complex/complex_case_1.sql");
+        testComplex("complex/complex_case_6.sql", "pretty_complex/complex_case_6.sql");
     }
 }
