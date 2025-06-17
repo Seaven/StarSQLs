@@ -69,6 +69,24 @@ public class SQLBuilder {
         return this;
     }
 
+    public SQLBuilder append(String str, boolean prefixSpace, boolean suffixSpace) {
+        if (str == null) {
+            return this;
+        }
+        str = str.trim();
+        if (prefixSpace && !sql.isEmpty()) {
+            char l = sql.charAt(sql.length() - 1);
+            if (!Character.isWhitespace(l) && l != '(') {
+                append(" ");
+            }
+        }
+        append(str);
+        if (suffixSpace) {
+            append(" ");
+        }
+        return this;
+    }
+
     private void breakMaxLength() {
         if (options.isCompact || options.maxLineLength <= 0) {
             return;
@@ -76,11 +94,10 @@ public class SQLBuilder {
         int currentLineLength = sql.length() - sql.lastIndexOf("\n");
         if (currentLineLength > options.maxLineLength && lastBreakPoint > 0) {
             // If current line exceeds max length, break at the last break point
-            String newLine = sql.substring(lastBreakPoint);
-            String newContent = newLine.substring(lastBreakPoint);
+            String content = sql.substring(lastBreakPoint);
             sql.setLength(lastBreakPoint);
             sql.append(newLine());
-            sql.append(newContent);
+            sql.append(content);
         }
     }
 

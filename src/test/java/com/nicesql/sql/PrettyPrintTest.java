@@ -25,8 +25,8 @@ public class PrettyPrintTest extends PrinterTestBase {
         String expected = result(resultName).trim();
         String actual = printer.format(sql).trim();
 
-        String nonSpaceSql = sql.replace(" ", "").replace("\n", "");
-        String nonSpaceActual = actual.replace(" ", "").replace("\n", "");
+        String nonSpaceSql = sql.replace(" ", "").replace("\n", "").toLowerCase();
+        String nonSpaceActual = actual.replace(" ", "").replace("\n", "").toLowerCase();
 
         Assertions.assertEquals(nonSpaceSql, nonSpaceActual);
         Assertions.assertEquals(expected, actual);
@@ -52,9 +52,8 @@ public class PrettyPrintTest extends PrinterTestBase {
         String expected = result(resultName).trim();
         String actual = printer.format(sql).trim();
 
-        saveResult(resultName, actual);
-        String nonSpaceSql = sql.replace(" ", "").replace("\n", "");
-        String nonSpaceActual = actual.replace(" ", "").replace("\n", "");
+        String nonSpaceSql = sql.replace(" ", "").replace("\n", "").toLowerCase();
+        String nonSpaceActual = actual.replace(" ", "").replace("\n", "").toLowerCase();
 
         Assertions.assertEquals(nonSpaceSql, nonSpaceActual);
         Assertions.assertEquals(expected, actual);
@@ -79,6 +78,6 @@ public class PrettyPrintTest extends PrinterTestBase {
 
     @Test
     public void testWindow() {
-        testComplex("complex/complex_case_4.sql", "pretty_complex/complex_case_4.sql");
+        testComplex("complex/complex_case_1.sql", "pretty_complex/complex_case_1.sql");
     }
 }

@@ -34,7 +34,7 @@ public class FormatPrinter extends FormatPrinterBase {
         return null;
     }
 
-    protected Void visitListAutoBreak(List<? extends ParserRuleContext> contexts, String splitStr) {
+    protected void visitListAutoBreak(List<? extends ParserRuleContext> contexts, String splitStr) {
         for (int i = 0; i < contexts.size(); i++) {
             final int j = i;
             sql.intoAutoBreak(() -> {
@@ -44,7 +44,6 @@ public class FormatPrinter extends FormatPrinterBase {
                 }
             });
         }
-        return null;
     }
 
     @Override
@@ -157,7 +156,10 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitSubquery(GenericSQLParser.SubqueryContext ctx) {
-        sql.intoParentheses(() -> sql.intoPrefix(() -> visit(ctx.queryRelation())));
+        sql.intoParentheses(() -> sql.intoLevel(() -> {
+            sql.appendNewLine();
+            visit(ctx.queryRelation());
+        }));
         return null;
     }
 
@@ -265,15 +267,13 @@ public class FormatPrinter extends FormatPrinterBase {
     public Void visitSelectSingle(GenericSQLParser.SelectSingleContext ctx) {
         sql.intoAutoBreak(() -> {
             visit(ctx.expression());
-            if (ctx.AS() != null) {
                 sql.appendKey(ctx.AS());
                 if (ctx.identifier() != null) {
-                    sql.append(ctx.identifier().getText());
+                    sql.append(ctx.identifier().getText(), true, false);
                 }
                 if (ctx.string() != null) {
-                    sql.append(ctx.string().getText());
+                    sql.append(ctx.string().getText(), true, false);
                 }
-            }
         });
         return null;
     }
@@ -312,11 +312,14 @@ public class FormatPrinter extends FormatPrinterBase {
     @Override
     public Void visitNonBracketsRelation(GenericSQLParser.NonBracketsRelationContext ctx) {
         visit(ctx.relationPrimary());
+        if (ctx.joinRelation() == null || ctx.joinRelation().isEmpty()) {
+            return null;
+        }
         if (options.breakJoinRelations) {
-            sql.appendBreak(options.breakJoinRelations);
+            sql.appendBreak(true);
             visitList(ctx.joinRelation(), sql.newBreak(options.breakJoinRelations));
         } else {
-            sql.intoPrefix(() -> visitList(ctx.joinRelation(), newLine()));
+            sql.intoLevel(() -> visitList(ctx.joinRelation(), newLine()));
         }
         return null;
     }
@@ -325,11 +328,14 @@ public class FormatPrinter extends FormatPrinterBase {
     public Void visitBracketsRelation(GenericSQLParser.BracketsRelationContext ctx) {
         sql.intoParentheses(() -> {
             visit(ctx.relationPrimary());
+            if (ctx.joinRelation() == null || ctx.joinRelation().isEmpty()) {
+                return;
+            }
             if (options.breakJoinRelations) {
-                sql.appendBreak(options.breakJoinRelations);
+                sql.appendBreak(true);
                 visitList(ctx.joinRelation(), sql.newBreak(options.breakJoinRelations));
             } else {
-                sql.intoPrefix(() -> visitList(ctx.joinRelation(), newLine()));
+                sql.intoLevel(() -> visitList(ctx.joinRelation(), newLine()));
             }
         });
         return null;
@@ -344,7 +350,7 @@ public class FormatPrinter extends FormatPrinterBase {
         visit(ctx.replicaList());
         if (ctx.alias != null) {
             sql.appendKey(ctx.AS());
-            sql.append(ctx.alias.getText());
+            sql.append(ctx.alias.getText(), true, true);
         }
         visit(ctx.bracketHint());
         if (ctx.BEFORE() != null) {
@@ -360,9 +366,9 @@ public class FormatPrinter extends FormatPrinterBase {
             sql.appendKey(ctx.VALUES().getText());
             visitList(ctx.rowConstructor(), comma());
         });
-        if (ctx.AS() != null) {
+        if (ctx.alias != null) {
             sql.appendKey(ctx.AS());
-            sql.append(ctx.alias.getText());
+            sql.append(ctx.alias.getText(), true, false);
         }
         if (ctx.columnAliases() != null) {
             visit(ctx.columnAliases());
@@ -378,7 +384,7 @@ public class FormatPrinter extends FormatPrinterBase {
         visit(ctx.subquery());
         if (ctx.alias != null) {
             sql.appendKey(ctx.AS());
-            sql.append(ctx.alias.getText());
+            sql.append(ctx.alias.getText(), true, false);
             visit(ctx.columnAliases());
         }
         return null;
@@ -392,7 +398,7 @@ public class FormatPrinter extends FormatPrinterBase {
         sql.append(")");
         if (ctx.alias != null) {
             visit(ctx.AS());
-            visit(ctx.alias);
+            sql.append(ctx.alias.getText(), true, false);
             visit(ctx.columnAliases());
         }
         return null;
@@ -406,7 +412,7 @@ public class FormatPrinter extends FormatPrinterBase {
             sql.intoParentheses(() -> visit(ctx.argumentList()));
         });
         visit(ctx.AS());
-        visit(ctx.alias);
+        sql.append(ctx.alias.getText(), true, false);
         visit(ctx.columnAliases());
         return null;
     }
@@ -437,14 +443,12 @@ public class FormatPrinter extends FormatPrinterBase {
     @Override
     public Void visitPivotAggregationExpression(GenericSQLParser.PivotAggregationExpressionContext ctx) {
         visit(ctx.functionCall());
-        if (ctx.AS() != null) {
-            sql.appendKey(ctx.AS());
-            if (ctx.identifier() != null) {
-                sql.append(ctx.identifier().getText());
-            }
-            if (ctx.string() != null) {
-                sql.append(ctx.string().getText());
-            }
+        sql.appendKey(ctx.AS());
+        if (ctx.identifier() != null) {
+            sql.append(ctx.identifier().getText(), true, false);
+        }
+        if (ctx.string() != null) {
+            sql.append(ctx.string().getText(), true, false);
         }
         return null;
     }
@@ -456,14 +460,12 @@ public class FormatPrinter extends FormatPrinterBase {
         } else if (ctx.literalExpressionList() != null) {
             visit(ctx.literalExpressionList());
         }
-        if (ctx.AS() != null) {
-            sql.appendKey(ctx.AS());
-            if (ctx.identifier() != null) {
-                sql.append(ctx.identifier().getText());
-            }
-            if (ctx.string() != null) {
-                sql.append(ctx.string().getText());
-            }
+        sql.appendKey(ctx.AS());
+        if (ctx.identifier() != null) {
+            sql.append(ctx.identifier().getText(), true, false);
+        }
+        if (ctx.string() != null) {
+            sql.append(ctx.string().getText(), true, false);
         }
         return null;
     }
@@ -637,7 +639,10 @@ public class FormatPrinter extends FormatPrinterBase {
     public Void visitScalarSubquery(GenericSQLParser.ScalarSubqueryContext ctx) {
         visit(ctx.booleanExpression());
         sql.appendKey(ctx.comparisonOperator().getText());
-        sql.intoParentheses(() -> sql.intoLevel(() -> visit(ctx.queryRelation())));
+        sql.intoParentheses(() -> sql.intoLevel(() -> {
+            sql.appendNewLine();
+            visit(ctx.queryRelation());
+        }));
         return null;
     }
 
@@ -656,7 +661,10 @@ public class FormatPrinter extends FormatPrinterBase {
     public Void visitTupleInSubquery(GenericSQLParser.TupleInSubqueryContext ctx) {
         sql.intoParentheses(() -> visitList(ctx.expression(), comma()));
         sql.appendKey(ctx.NOT()).appendKey(ctx.IN());
-        sql.intoParentheses(() -> sql.intoPrefix(() -> visit(ctx.queryRelation())));
+        sql.intoParentheses(() -> sql.intoLevel(() ->  {
+            sql.appendNewLine();
+            visit(ctx.queryRelation());
+        }));
         return null;
     }
 
@@ -673,7 +681,10 @@ public class FormatPrinter extends FormatPrinterBase {
     public Void visitInSubquery(GenericSQLParser.InSubqueryContext ctx) {
         visit(ctx.value);
         sql.appendKey(ctx.NOT()).appendKey(ctx.IN());
-        sql.intoParentheses(() -> sql.intoPrefix(() -> visit(ctx.queryRelation())));
+        sql.intoParentheses(() -> sql.intoLevel(() -> {
+            sql.appendNewLine();
+            visit(ctx.queryRelation());
+        }));
         return null;
     }
 
@@ -682,10 +693,8 @@ public class FormatPrinter extends FormatPrinterBase {
         visit(ctx.value);
         sql.appendKey(ctx.NOT());
         sql.appendKey(ctx.BETWEEN());
-        sql.appendBreak(options.breakBetween);
         visit(ctx.lower);
         sql.appendKey(ctx.AND());
-        sql.appendBreak(options.breakBetween);
         visit(ctx.upper);
         return null;
     }
@@ -701,7 +710,11 @@ public class FormatPrinter extends FormatPrinterBase {
     @Override
     public Void visitArithmeticBinary(GenericSQLParser.ArithmeticBinaryContext ctx) {
         visit(ctx.left);
-        sql.append(ctx.operator.getText());
+        if (options.isCompact) {
+            sql.append(ctx.operator.getText());
+        } else {
+            sql.appendKey(ctx.operator.getText());
+        }
         return visit(ctx.right);
     }
 
@@ -901,7 +914,10 @@ public class FormatPrinter extends FormatPrinterBase {
     @Override
     public Void visitExists(GenericSQLParser.ExistsContext ctx) {
         sql.appendKey(ctx.EXISTS());
-        sql.intoParentheses(() -> sql.intoPrefix(() -> visit(ctx.queryRelation())));
+        sql.intoParentheses(() -> sql.intoLevel(() -> {
+            sql.appendNewLine();
+            visit(ctx.queryRelation());
+        }));
         return null;
     }
 
@@ -1040,7 +1056,11 @@ public class FormatPrinter extends FormatPrinterBase {
     @Override
     public Void visitSimpleFunctionCall(GenericSQLParser.SimpleFunctionCallContext ctx) {
         sql.append(ctx.qualifiedName().getText());
-        sql.intoParentheses(() -> visitList(ctx.expression(), commaBreak(options.breakFunctionArgs)));
+        if (options.breakFunctionArgs) {
+            sql.intoParentheses(() -> visitList(ctx.expression(), commaBreak(true)));
+        } else if (options.alignFunctionArgs) {
+            sql.intoParentheses(() -> sql.intoPrefix(() -> sql.intoAutoBreak(() -> visitList(ctx.expression(), comma()))));
+        }
         if (ctx.over() != null) {
             visit(ctx.over());
         }

@@ -38,8 +38,6 @@ public class FormatOptions {
 
     public boolean breakInList = false;
 
-    public boolean breakBetween = false;
-
     public boolean breakAndOr = false;
 
     // ================================
@@ -81,7 +79,6 @@ public class FormatOptions {
         options.alignFunctionArgs = true;
         options.breakCaseWhen = true;
         options.breakInList = true;
-        options.breakBetween = true;
         options.breakAndOr = true;
 
         // Statements keywords
