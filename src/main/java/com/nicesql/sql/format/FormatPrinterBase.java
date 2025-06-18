@@ -126,7 +126,6 @@ public class FormatPrinterBase extends GenericSQLBaseVisitor<Void> {
         context.accept(this);
         String formatSQL = formatSQLs.stream()
                 .map(SQLBuilder::toString)
-                .map(String::trim)
                 .collect(Collectors.joining("\n"));
         return insertComments(formatSQL);
     }

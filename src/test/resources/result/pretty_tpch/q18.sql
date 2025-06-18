@@ -6,13 +6,14 @@ SELECT
     o_totalprice , 
     SUM(l_quantity)
 FROM customer , orders , lineitem
-WHERE o_orderkey IN (SELECT 
-                         l_orderkey
-                     FROM lineitem
-                     GROUP BY 
-                         l_orderkey
-                     HAVING SUM(l_quantity) > 315
-                     )
+WHERE o_orderkey IN (
+        SELECT 
+            l_orderkey
+        FROM lineitem
+        GROUP BY 
+            l_orderkey
+        HAVING SUM(l_quantity) > 315
+        )
     AND c_custkey = o_custkey
     AND o_orderkey = l_orderkey
 GROUP BY 

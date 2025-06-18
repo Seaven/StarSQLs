@@ -852,7 +852,7 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitParenthesizedExpression(GenericSQLParser.ParenthesizedExpressionContext ctx) {
-        sql.intoParentheses(() -> visit(ctx.expression()));
+        sql.intoParentheses(() -> sql.intoLevel(() -> visit(ctx.expression())));
         return null;
     }
 

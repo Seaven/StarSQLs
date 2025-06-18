@@ -21,5 +21,4 @@ WHERE o_orderkey = l_orderkey
 GROUP BY 
     l_shipmode
 ORDER BY 
-    l_shipmode
-;
+    l_shipmode;

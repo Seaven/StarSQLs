@@ -94,10 +94,10 @@ public class SQLBuilder {
         }
         int preLineIndex = sql.lastIndexOf("\n");
         int currentLineLength = sql.length() - preLineIndex;
-        if (StringUtils.isBlank(sql.substring(preLineIndex, lastBreakPoint).trim())) {
-            return;
-        }
         if (currentLineLength > options.maxLineLength && lastBreakPoint > 0) {
+            if (StringUtils.isBlank(sql.substring(preLineIndex, lastBreakPoint).trim())) {
+                return;
+            }
             // If current line exceeds max length, break at the last break point
             String content = sql.substring(lastBreakPoint);
             sql.setLength(lastBreakPoint);
@@ -174,6 +174,10 @@ public class SQLBuilder {
 
     @Override
     public String toString() {
-        return sql.toString();
+        String ss = sql.toString().trim();
+        if (ss.endsWith(";")) {
+            ss = ss.substring(0, ss.length() - 1).trim() + ";";
+        }
+        return ss;
     }
 }
