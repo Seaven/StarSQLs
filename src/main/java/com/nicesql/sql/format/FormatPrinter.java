@@ -112,7 +112,6 @@ public class FormatPrinter extends FormatPrinterBase {
             sql.appendNewLine();
             visit(ctx.limitElement());
         }
-        sql.appendNewLine();
         return null;
     }
 
@@ -159,10 +158,13 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitSubquery(GenericSQLParser.SubqueryContext ctx) {
-        sql.intoParentheses(() -> sql.intoLevel(() -> {
+        sql.intoParentheses(() -> {
+            sql.intoLevel(() -> {
+                sql.appendNewLine();
+                visit(ctx.queryRelation());
+            });
             sql.appendNewLine();
-            visit(ctx.queryRelation());
-        }));
+        });
         return null;
     }
 
@@ -661,10 +663,13 @@ public class FormatPrinter extends FormatPrinterBase {
     public Void visitTupleInSubquery(GenericSQLParser.TupleInSubqueryContext ctx) {
         sql.intoParentheses(() -> visitList(ctx.expression(), comma()));
         sql.appendKey(ctx.NOT()).appendKey(ctx.IN());
-        sql.intoParentheses(() -> sql.intoLevel(() ->  {
+        sql.intoParentheses(() -> {
+            sql.intoLevel(() -> {
+                sql.appendNewLine();
+                visit(ctx.queryRelation());
+            });
             sql.appendNewLine();
-            visit(ctx.queryRelation());
-        }));
+        });
         return null;
     }
 
@@ -681,10 +686,13 @@ public class FormatPrinter extends FormatPrinterBase {
     public Void visitInSubquery(GenericSQLParser.InSubqueryContext ctx) {
         visit(ctx.value);
         sql.appendKey(ctx.NOT()).appendKey(ctx.IN());
-        sql.intoParentheses(() -> sql.intoLevel(() -> {
+        sql.intoParentheses(() -> {
+            sql.intoLevel(() -> {
+                sql.appendNewLine();
+                visit(ctx.queryRelation());
+            });
             sql.appendNewLine();
-            visit(ctx.queryRelation());
-        }));
+        });
         return null;
     }
 

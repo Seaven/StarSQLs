@@ -174,10 +174,6 @@ public class SQLBuilder {
 
     @Override
     public String toString() {
-        String ss = sql.toString().trim();
-        if (ss.endsWith(";")) {
-            ss = ss.substring(0, ss.length() - 1).trim() + ";";
-        }
-        return ss;
+        return sql.toString().trim();
     }
 }
