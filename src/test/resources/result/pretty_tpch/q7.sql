@@ -20,7 +20,7 @@ FROM (
                 OR (n1.n_name = 'IRAN'
                     AND n2.n_name = 'CANADA'))
             AND l_shipdate BETWEEN date'1995-01-01' AND date'1996-12-31'
-        ) AS shipping
+    ) AS shipping
 GROUP BY 
     supp_nation , 
     cust_nation , 

@@ -11,7 +11,7 @@ FROM (
             AND o_comment NOT LIKE '%unusual%deposits%'
         GROUP BY 
             c_custkey
-        ) a
+    ) a
 GROUP BY 
     c_count
 ORDER BY 

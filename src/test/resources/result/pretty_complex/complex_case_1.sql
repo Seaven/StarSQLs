@@ -3,19 +3,19 @@ sales_cte AS (
     SELECT 
         s.seller_id , 
         SUM(s.amount) AS total_sales
-    FROM saless
+    FROM sales s
     WHERE s.date BETWEEN DATE'2024-01-01' AND DATE'2024-12-31'
     GROUP BY 
         s.seller_id
     HAVING SUM(s.amount) > 10000
-    ) , 
+) , 
 ranked_customers AS (
     SELECT 
         c.id , 
         c.name , 
         RANK() OVER (ORDER BY c.created_at DESC) AS rnk
-    FROM customersc
-    )
+    FROM customers c
+)
 SELECT 
     c.id AS customer_id , 
     c.name , 
@@ -25,7 +25,7 @@ SELECT
     p.name AS product_name , 
     p.price , 
     COALESCE(o.discount , 
-    0) AS discount , 
+             0) AS discount , 
     CASE 
         WHEN o.status = 'shipped' THEN TRUE
         ELSE FALSE
@@ -33,27 +33,29 @@ SELECT
     ARRAY<INT>[1 , 2 , 3] AS arr , 
     MAP{'a':1 , 'b':2} AS mp , 
     s.total_sales , 
-    SUM(oi.quantity*p.price) OVER (PARTITION BY c.id) AS total_spent , 
-    EXISTS (SELECT 
-                1
-            FROM returnsr
-            WHERE r.order_id = o.id
-            ) AS has_return , 
-    (SELECT 
-         MAX(amount)
-     FROM payments
-     WHERE payments.order_id = o.id
-     ) AS max_payment
-FROM ranked_customersc
-    LEFT JOIN orderso
+    SUM(oi.quantity * p.price) OVER (PARTITION BY c.id) AS total_spent , 
+    EXISTS (
+        SELECT 
+            1
+        FROM returns r
+        WHERE r.order_id = o.id
+    ) AS has_return , 
+    (
+        SELECT 
+            MAX(amount)
+        FROM payments
+        WHERE payments.order_id = o.id
+    ) AS max_payment
+FROM ranked_customers c
+    LEFT JOIN orders o
     ON c.id = o.customer_id
-    LEFT SEMI JOIN sales_ctes
+    LEFT SEMI JOIN sales_cte s
     ON s.seller_id = o.seller_id
-    RIGHT ANTI JOIN blacklistb
+    RIGHT ANTI JOIN blacklist b
     ON b.customer_id = c.id
-    INNER JOIN order_itemsoi
+    INNER JOIN order_items oi
     ON o.id = oi.order_id
-    JOIN productsp
+    JOIN products p
     ON oi.product_id = p.id
 WHERE c.rnk <= 100
     AND o.status IN 

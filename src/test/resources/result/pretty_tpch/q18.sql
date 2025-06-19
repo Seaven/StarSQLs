@@ -13,7 +13,7 @@ WHERE o_orderkey IN (
         GROUP BY 
             l_orderkey
         HAVING SUM(l_quantity) > 315
-        )
+    )
     AND c_custkey = o_custkey
     AND o_orderkey = l_orderkey
 GROUP BY 

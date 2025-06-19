@@ -15,6 +15,7 @@ package com.nicesql.sql.format;
 import com.nicesql.sql.parser.GenericSQLParser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -212,8 +213,10 @@ public class FormatPrinter extends FormatPrinterBase {
             sql.appendBreak(options.breakSelectItems);
             visitList(ctx.selectItem(), commaBreak(options.breakSelectItems));
         });
-        sql.appendNewLine();
-        sql.intoLevel(() -> visit(ctx.fromClause()));
+        if (!StringUtils.isBlank(ctx.fromClause().getText())) {
+            sql.appendNewLine();
+            sql.intoLevel(() -> visit(ctx.fromClause()));
+        }
         if (ctx.where != null) {
             sql.appendNewLine();
             sql.appendKey(ctx.WHERE());
@@ -255,10 +258,13 @@ public class FormatPrinter extends FormatPrinterBase {
         sql.append(ctx.name.getText()).append(" ");
         visit(ctx.columnAliases());
         sql.appendKey(ctx.AS());
-        sql.intoParentheses(() -> sql.intoLevel(() -> {
+        sql.intoParentheses(() -> {
+            sql.intoLevel(() -> {
+                sql.appendNewLine();
+                visit(ctx.queryRelation());
+            });
             sql.appendNewLine();
-            visit(ctx.queryRelation());
-        }));
+        });
         return null;
     }
 
@@ -641,10 +647,13 @@ public class FormatPrinter extends FormatPrinterBase {
     public Void visitScalarSubquery(GenericSQLParser.ScalarSubqueryContext ctx) {
         visit(ctx.booleanExpression());
         sql.appendKey(ctx.comparisonOperator().getText());
-        sql.intoParentheses(() -> sql.intoLevel(() -> {
+        sql.intoParentheses(() -> {
+            sql.intoLevel(() -> {
+                sql.appendNewLine();
+                visit(ctx.queryRelation());
+            });
             sql.appendNewLine();
-            visit(ctx.queryRelation());
-        }));
+        });
         return null;
     }
 
@@ -922,10 +931,13 @@ public class FormatPrinter extends FormatPrinterBase {
     @Override
     public Void visitExists(GenericSQLParser.ExistsContext ctx) {
         sql.appendKey(ctx.EXISTS());
-        sql.intoParentheses(() -> sql.intoLevel(() -> {
+        sql.intoParentheses(() -> {
+            sql.intoLevel(() -> {
+                sql.appendNewLine();
+                visit(ctx.queryRelation());
+            });
             sql.appendNewLine();
-            visit(ctx.queryRelation());
-        }));
+        });
         return null;
     }
 
@@ -1065,7 +1077,11 @@ public class FormatPrinter extends FormatPrinterBase {
     public Void visitSimpleFunctionCall(GenericSQLParser.SimpleFunctionCallContext ctx) {
         sql.append(ctx.qualifiedName().getText());
         if (options.breakFunctionArgs) {
-            sql.intoParentheses(() -> visitList(ctx.expression(), commaBreak(true)));
+            if (options.alignFunctionArgs) {
+                sql.intoParentheses(() -> sql.intoPrefix(() -> visitList(ctx.expression(), commaBreak(true))));
+            } else {
+                sql.intoParentheses(() -> visitList(ctx.expression(), commaBreak(true)));
+            }
         } else if (options.alignFunctionArgs) {
             sql.intoParentheses(() -> sql.intoPrefix(() -> sql.intoAutoBreak(() -> visitList(ctx.expression(), comma()))));
         }

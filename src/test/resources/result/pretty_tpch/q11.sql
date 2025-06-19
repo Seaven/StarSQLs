@@ -14,6 +14,6 @@ HAVING SUM(ps_supplycost * ps_availqty) > (
     WHERE ps_suppkey = s_suppkey
         AND s_nationkey = n_nationkey
         AND n_name = 'PERU'
-    )
+)
 ORDER BY 
     value DESC;

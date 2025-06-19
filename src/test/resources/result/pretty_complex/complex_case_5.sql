@@ -13,13 +13,13 @@ employee_hierarchy AS (
         e.id , 
         e.name , 
         e.manager_id , 
-        eh.level+1 , 
+        eh.level + 1 , 
         array_append(eh.path , 
-        e.id)
-    FROM employeese
-        JOIN employee_hierarchyeh
+                     e.id)
+    FROM employees e
+        JOIN employee_hierarchy eh
         ON e.manager_id = eh.id
-    ) , 
+) , 
 sales_metrics AS (
     SELECT 
         s.salesperson_id , 
@@ -27,12 +27,12 @@ sales_metrics AS (
         SUM(s.amount) AS total_sales , 
         AVG(s.amount) OVER (PARTITION BY s.region_id) AS region_avg , 
         RANK() OVER (ORDER BY SUM(s.amount) DESC) AS sales_rank
-    FROM saless
+    FROM sales s
     WHERE s.date >= DATE'2024-01-01'
     GROUP BY 
         s.salesperson_id , 
         s.region_id
-    ) , 
+) , 
 customer_segments AS (
     SELECT 
         c.id , 
@@ -43,13 +43,13 @@ customer_segments AS (
             ELSE 'Basic'
         END AS segment , 
         MAP{'purchases':COUNT(*) , 'last_order':MAX(o.date)} AS metrics
-    FROM customersc
-        LEFT JOIN orderso
+    FROM customers c
+        LEFT JOIN orders o
         ON c.id = o.customer_id
     GROUP BY 
         c.id , 
         c.name
-    )
+)
 SELECT 
     e.name AS employee_name , 
     e.level AS hierarchy_level , 
@@ -61,55 +61,61 @@ SELECT
     cs.metrics['purchases'] AS customer_purchases , 
     ARRAY_AGG(DISTINCT p.name) AS premium_products , 
     NAMED_STRUCT('id' , 
-    e.id , 
-    'name' , 
-    e.name , 
-    'revenue' , 
-    sm.total_sales) AS employee_profile , 
-    EXISTS (SELECT 
-                1
-            FROM projectspr
-            WHERE pr.leader_id = e.id
-                AND pr.status = 'active'
-            ) AS is_project_leader , 
-    (SELECT 
-         json_arrayagg(json_object('project_id' , 
-         p.id , 
-         'budget' , 
-         p.budget , 
-         'team_size' , 
-         (SELECT 
-              COUNT(*)
-          FROM project_memberspm
-          WHERE pm.project_id = p.id
-          )))
-FROM projectsp
-WHERE p.leader_id = e.id
-) AS project_details
-FROM employee_hierarchye
-    LEFT JOIN sales_metricssm
+                 e.id , 
+                 'name' , 
+                 e.name , 
+                 'revenue' , 
+                 sm.total_sales) AS employee_profile , 
+    EXISTS (
+        SELECT 
+            1
+        FROM projects pr
+        WHERE pr.leader_id = e.id
+            AND pr.status = 'active'
+    ) AS is_project_leader , 
+    (
+        SELECT 
+            json_arrayagg(json_object('project_id' , 
+                                      p.id , 
+                                      'budget' , 
+                                      p.budget , 
+                                      'team_size' , 
+                                      (
+                                          SELECT 
+                                              COUNT(*)
+                                          FROM project_members pm
+                                          WHERE pm.project_id = p.id
+                                      )))
+        FROM projects p
+        WHERE p.leader_id = e.id
+    ) AS project_details
+FROM employee_hierarchy e
+    LEFT JOIN sales_metrics sm
     ON e.id = sm.salesperson_id
-    LEFT JOIN customer_segmentscs
+    LEFT JOIN customer_segments cs
     ON e.id = cs.id
-    LEFT JOIN TABLE (flatten(ARRAY<INT>[1 , 2 , 3]))t
+    LEFT JOIN TABLE (flatten(ARRAY<INT>[1 , 2 , 3])) t
     ON true
-    LEFT JOIN LATERAL (SELECT 
-                           ARRAY_AGG(product_id) AS product_ids
-                       FROM order_items
-                       WHERE order_id IN (SELECT 
-                                              id
-                                          FROM orders
-                                          WHERE salesperson_id = e.id
-                                          )
-)oi
+    LEFT JOIN LATERAL (
+        SELECT 
+            ARRAY_AGG(product_id) AS product_ids
+        FROM order_items
+        WHERE order_id IN (
+                SELECT 
+                    id
+                FROM orders
+                WHERE salesperson_id = e.id
+            )
+    ) oi
     ON true
-    LEFT JOIN productsp
+    LEFT JOIN products p
     ON p.id = ANY(oi.product_ids)
 WHERE e.level <= 5
-    AND sm.total_sales > (SELECT 
-                              AVG(total_sales)
-                          FROM sales_metrics
-                          )
+    AND sm.total_sales > (
+        SELECT 
+            AVG(total_sales)
+        FROM sales_metrics
+    )
 GROUP BY 
     e.id , 
     e.name , 

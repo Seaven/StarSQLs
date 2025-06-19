@@ -24,7 +24,7 @@ WHERE p_partkey = ps_partkey
             AND s_nationkey = n_nationkey
             AND n_regionkey = r_regionkey
             AND r_name = 'AMERICA'
-        )
+    )
 ORDER BY 
     s_acctbal DESC , 
     n_name , 

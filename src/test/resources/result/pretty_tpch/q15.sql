@@ -13,7 +13,7 @@ FROM supplier , (
             AND l_shipdate < date'1995-10-01'
         GROUP BY 
             l_suppkey
-        ) a
+    ) a
 WHERE s_suppkey = supplier_no
     AND total_revenue = (
         SELECT 
@@ -27,7 +27,7 @@ WHERE s_suppkey = supplier_no
                     AND l_shipdate < date'1995-10-01'
                 GROUP BY 
                     l_suppkey
-                ) b
-        )
+            ) b
+    )
 ORDER BY 
     s_suppkey;
