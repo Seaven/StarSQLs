@@ -15,9 +15,9 @@ package com.nicesql.sql.format;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.nicesql.sql.parser.GenericSQLBaseVisitor;
-import com.nicesql.sql.parser.GenericSQLLexer;
-import com.nicesql.sql.parser.GenericSQLParser;
+import com.nicesql.sql.parser.StarRocksBaseVisitor;
+import com.nicesql.sql.parser.StarRocksLexer;
+import com.nicesql.sql.parser.StarRocksParser;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class FormatPrinterBase extends GenericSQLBaseVisitor<Void> {
+public class FormatPrinterBase extends StarRocksBaseVisitor<Void> {
     protected FormatOptions options;
 
     protected SQLBuilder sql;
@@ -48,28 +48,32 @@ public class FormatPrinterBase extends GenericSQLBaseVisitor<Void> {
 
     @Override
     public Void visitTerminal(TerminalNode node) {
-        if (node.getSymbol().getType() == GenericSQLParser.EOF) {
+        if (node.getSymbol().getType() == StarRocksParser.EOF) {
             return null; // Ignore EOF token
         }
         if (",".equals(node.getText().trim())) {
             sql.append(comma());
             return null;
         }
+        if ("(".equals(node.getText().trim()) || ")".equals(node.getText().trim())) {
+            sql.append(node.getText().trim());
+            return null;
+        }
         sql.appendKey(node.getText());
         return null;
     }
 
-    private GenericSQLParser.SqlStatementsContext parse(String sql) {
-        GenericSQLLexer lexer = new GenericSQLLexer(CharStreams.fromString(sql));
+    private StarRocksParser.SqlStatementsContext parse(String sql) {
+        StarRocksLexer lexer = new StarRocksLexer(CharStreams.fromString(sql));
         CommonTokenStream tokenStream = new CommonTokenStream(lexer);
         initComments(tokenStream);
-        GenericSQLParser parser = new GenericSQLParser(tokenStream);
+        StarRocksParser parser = new StarRocksParser(tokenStream);
 
         SQLSyntaxErrorListener errorListener = new SQLSyntaxErrorListener();
         parser.removeErrorListeners();
         parser.addErrorListener(errorListener);
 
-        GenericSQLParser.SqlStatementsContext context = parser.sqlStatements();
+        StarRocksParser.SqlStatementsContext context = parser.sqlStatements();
 
         if (errorListener.hasErrors()) {
             String errorMsg = String.join("\n", errorListener.getErrors());
@@ -122,7 +126,7 @@ public class FormatPrinterBase extends GenericSQLBaseVisitor<Void> {
     }
 
     public String format(String sql) {
-        GenericSQLParser.SqlStatementsContext context = parse(sql);
+        StarRocksParser.SqlStatementsContext context = parse(sql);
         context.accept(this);
         String formatSQL = formatSQLs.stream()
                 .map(SQLBuilder::toString)
