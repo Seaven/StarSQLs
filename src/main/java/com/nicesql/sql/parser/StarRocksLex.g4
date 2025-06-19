@@ -14,12 +14,7 @@
 
 
 lexer grammar StarRocksLex;
-@members {
-private long sqlMode = com.starrocks.qe.SqlModeHelper.MODE_DEFAULT;
-public void setSqlMode(long newSqlMode) {
-    sqlMode = newSqlMode;
-}
-}
+
 tokens {
     CONCAT
 }
@@ -524,7 +519,7 @@ ASTERISK_SYMBOL: '*';
 SLASH_SYMBOL: '/';
 PERCENT_SYMBOL: '%';
 
-LOGICAL_OR: '||' {setType((sqlMode & com.starrocks.qe.SqlModeHelper.MODE_PIPES_AS_CONCAT) == 0 ? LOGICAL_OR : StarRocksParser.CONCAT);};
+LOGICAL_OR: '||';
 LOGICAL_AND: '&&';
 LOGICAL_NOT: '!';
 
@@ -609,7 +604,7 @@ BRACKETED_COMMENT
     ;
 
 OPTIMIZER_HINT
-    : '/*+' .*? '*/' -> channel(2)
+    : '/*+' .*? '*/' -> channel(HIDDEN)
     ;
 
 SEMICOLON: ';';
@@ -617,7 +612,7 @@ SEMICOLON: ';';
 DOTDOTDOT: '...';
 
 WS
-    : [ \r\n\t\u3000]+ -> channel(HIDDEN)
+    : [ \r\n\t\u3000]+ -> channel(2)
     ;
 
 ATTACHMENT

@@ -14,12 +14,11 @@
 
 grammar StarRocks;
 import StarRocksLex;
-@members {
-private long sqlMode = com.starrocks.qe.SqlModeHelper.MODE_DEFAULT;
-public void setSqlMode(long newSqlMode) {
-    sqlMode = newSqlMode;
+
+options {
+    caseInsensitive = true;
 }
-}
+
 sqlStatements
     : singleStatement+ EOF
     ;
