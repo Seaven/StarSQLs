@@ -21,6 +21,7 @@ import com.nicesql.sql.parser.StarRocksParser;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.List;
@@ -131,6 +132,13 @@ public class FormatPrinterBase extends StarRocksBaseVisitor<Void> {
         String formatSQL = formatSQLs.stream()
                 .map(SQLBuilder::toString)
                 .collect(Collectors.joining("\n"));
+        return insertComments(formatSQL);
+    }
+
+    public String format(ParseTree tree) {
+        this.sql = new SQLBuilder(options);
+        tree.accept(this);
+        String formatSQL = sql.toString();
         return insertComments(formatSQL);
     }
 }

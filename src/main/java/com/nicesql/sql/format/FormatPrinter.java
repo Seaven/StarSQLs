@@ -64,9 +64,6 @@ public class FormatPrinter extends FormatPrinterBase {
         if (ctx.SEMICOLON() != null) {
             sql.append(ctx.SEMICOLON().getText());
         }
-        if (ctx.EOF() != null) {
-            sql.append(ctx.EOF().getText());
-        }
         visit(ctx.emptyStatement());
         formatSQLs.add(sql);
         return null;
@@ -161,13 +158,7 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitSubquery(StarRocksParser.SubqueryContext ctx) {
-        sql.intoParentheses(() -> {
-            sql.intoLevel(() -> {
-                sql.appendNewLine();
-                visit(ctx.queryRelation());
-            });
-            sql.appendNewLine();
-        });
+        visitSubqueryImpl(ctx.queryRelation());
         return null;
     }
 
@@ -637,17 +628,26 @@ public class FormatPrinter extends FormatPrinterBase {
         return null;
     }
 
+    public void visitSubqueryImpl(StarRocksParser.QueryRelationContext ctx) {
+        sql.intoParentheses(() -> {
+            if (!options.formatSubquery) {
+                FormatPrinter unformat = new FormatPrinter(new FormatOptions());
+                sql.append(unformat.format(ctx));
+                return;
+            }
+            sql.intoLevel(() -> {
+                sql.appendNewLine();
+                visit(ctx);
+            });
+            sql.appendNewLine();
+        });
+    }
+
     @Override
     public Void visitScalarSubquery(StarRocksParser.ScalarSubqueryContext ctx) {
         visit(ctx.booleanExpression());
         sql.appendKey(ctx.comparisonOperator().getText());
-        sql.intoParentheses(() -> {
-            sql.intoLevel(() -> {
-                sql.appendNewLine();
-                visit(ctx.queryRelation());
-            });
-            sql.appendNewLine();
-        });
+        visitSubqueryImpl(ctx.queryRelation());
         return null;
     }
 
@@ -666,13 +666,7 @@ public class FormatPrinter extends FormatPrinterBase {
     public Void visitTupleInSubquery(StarRocksParser.TupleInSubqueryContext ctx) {
         sql.intoParentheses(() -> visitList(ctx.expression(), comma()));
         sql.appendKey(ctx.NOT()).appendKey(ctx.IN());
-        sql.intoParentheses(() -> {
-            sql.intoLevel(() -> {
-                sql.appendNewLine();
-                visit(ctx.queryRelation());
-            });
-            sql.appendNewLine();
-        });
+        visitSubqueryImpl(ctx.queryRelation());
         return null;
     }
 
@@ -689,13 +683,7 @@ public class FormatPrinter extends FormatPrinterBase {
     public Void visitInSubquery(StarRocksParser.InSubqueryContext ctx) {
         visit(ctx.value);
         sql.appendKey(ctx.NOT()).appendKey(ctx.IN());
-        sql.intoParentheses(() -> {
-            sql.intoLevel(() -> {
-                sql.appendNewLine();
-                visit(ctx.queryRelation());
-            });
-            sql.appendNewLine();
-        });
+        visitSubqueryImpl(ctx.queryRelation());
         return null;
     }
 
@@ -923,13 +911,7 @@ public class FormatPrinter extends FormatPrinterBase {
     @Override
     public Void visitExists(StarRocksParser.ExistsContext ctx) {
         sql.appendKey(ctx.EXISTS());
-        sql.intoParentheses(() -> {
-            sql.intoLevel(() -> {
-                sql.appendNewLine();
-                visit(ctx.queryRelation());
-            });
-            sql.appendNewLine();
-        });
+        visitSubqueryImpl(ctx.queryRelation());
         return null;
     }
 
