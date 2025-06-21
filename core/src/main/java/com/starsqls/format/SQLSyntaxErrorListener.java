@@ -1,4 +1,4 @@
-package com.starsql.format;
+package com.starsqls.format;
 
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.RecognitionException;

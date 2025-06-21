@@ -10,10 +10,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.starsql.format;
+package com.starsqls.format;
 
 import com.google.common.base.Preconditions;
-import com.starsql.parser.StarRocksParser;
+import com.starsqls.parser.StarRocksParser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;

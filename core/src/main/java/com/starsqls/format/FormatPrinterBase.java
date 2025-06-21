@@ -10,14 +10,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.starsql.format;
+package com.starsqls.format;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.starsql.parser.StarRocksBaseVisitor;
-import com.starsql.parser.StarRocksLexer;
-import com.starsql.parser.StarRocksParser;
+import com.starsqls.parser.StarRocksBaseVisitor;
+import com.starsqls.parser.StarRocksLexer;
+import com.starsqls.parser.StarRocksParser;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;

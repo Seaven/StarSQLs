@@ -1,7 +1,7 @@
-diff --git a/src/main/java/com/starsql/parser/StarRocks.g4 b/src/main/java/com/starsql/parser/StarRocks.g4
+diff --git a/src/main/java/com/starsqls/parser/StarRocks.g4 b/src/main/java/com/starsqls/parser/StarRocks.g4
 index cf631e3..0b13759 100644
---- a/src/main/java/com/starsql/parser/StarRocks.g4
-+++ b/src/main/java/com/starsql/parser/StarRocks.g4
+--- a/src/main/java/com/starsqls/parser/StarRocks.g4
++++ b/src/main/java/com/starsqls/parser/StarRocks.g4
 @@ -14,12 +14,11 @@
  
  grammar StarRocks;
@@ -19,10 +19,10 @@ index cf631e3..0b13759 100644
  sqlStatements
      : singleStatement+ EOF
      ;
-diff --git a/src/main/java/com/starsql/parser/StarRocksLex.g4 b/src/main/java/com/starsql/parser/StarRocksLex.g4
+diff --git a/src/main/java/com/starsqls/parser/StarRocksLex.g4 b/src/main/java/com/starsqls/parser/StarRocksLex.g4
 index 76f4db5..d9ee41b 100644
---- a/src/main/java/com/starsql/parser/StarRocksLex.g4
-+++ b/src/main/java/com/starsql/parser/StarRocksLex.g4
+--- a/src/main/java/com/starsqls/parser/StarRocksLex.g4
++++ b/src/main/java/com/starsqls/parser/StarRocksLex.g4
 @@ -14,12 +14,7 @@
  
  

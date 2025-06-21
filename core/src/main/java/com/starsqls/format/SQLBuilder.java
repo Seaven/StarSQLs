@@ -1,4 +1,4 @@
-package com.starsql.format;
+package com.starsqls.format;
 
 import com.google.common.base.Strings;
 import org.antlr.v4.runtime.tree.TerminalNode;

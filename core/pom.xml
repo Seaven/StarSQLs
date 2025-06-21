@@ -4,12 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.starsql</groupId>
-        <artifactId>starsql</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <groupId>com.starsqls</groupId>
+        <artifactId>starsqls</artifactId>
+        <version>1.0</version>
     </parent>
 
-    <artifactId>starsql-core</artifactId>
+    <artifactId>starsqls-core</artifactId>
 
     <properties>
         <maven.compiler.release>${java.version}</maven.compiler.release>
@@ -39,13 +39,13 @@
                             <goal>antlr4</goal>
                         </goals>
                         <configuration>
-                            <sourceDirectory>src/main/java/com/starsql/parser</sourceDirectory>
-                            <outputDirectory>target/generated-sources/antlr4/com/starsql/parser</outputDirectory>
-                            <libDirectory>target/generated-sources/antlr4/com/starsql/parser</libDirectory>
+                            <sourceDirectory>src/main/java/com/starsqls/parser</sourceDirectory>
+                            <outputDirectory>target/generated-sources/antlr4/com/starsqls/parser</outputDirectory>
+                            <libDirectory>target/generated-sources/antlr4/com/starsqls/parser</libDirectory>
                             <visitor>true</visitor>
                             <arguments>
                                 <argument>-package</argument>
-                                <argument>com.starsql.parser</argument>
+                                <argument>com.starsqls.parser</argument>
                             </arguments>
                         </configuration>
                     </execution>

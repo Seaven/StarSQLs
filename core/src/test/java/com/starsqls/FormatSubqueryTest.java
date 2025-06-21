@@ -1,7 +1,7 @@
-package com.starsql;
+package com.starsqls;
 
-import com.starsql.format.FormatOptions;
-import com.starsql.format.FormatPrinter;
+import com.starsqls.format.FormatOptions;
+import com.starsqls.format.FormatPrinter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
