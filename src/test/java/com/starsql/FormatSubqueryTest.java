@@ -1,7 +1,7 @@
-package com.nicesql.sql;
+package com.starsql;
 
-import com.nicesql.sql.format.FormatOptions;
-import com.nicesql.sql.format.FormatPrinter;
+import com.starsql.format.FormatOptions;
+import com.starsql.format.FormatPrinter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

@@ -1,4 +1,4 @@
-package com.nicesql.sql.format;
+package com.starsql.format;
 
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.RecognitionException;

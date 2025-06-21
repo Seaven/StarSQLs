@@ -4,8 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.example</groupId>
-    <artifactId>NiceSQL</artifactId>
+    <groupId>com.starsql</groupId>
+    <artifactId>starsql</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
@@ -73,7 +73,7 @@
                             <goal>antlr4</goal>
                         </goals>
                         <configuration>
-                            <sourceDirectory>src/main/java/com/nicesql/sql/parser</sourceDirectory>
+                            <sourceDirectory>src/main/java/com/starsql/parser</sourceDirectory>
                             <outputDirectory>target/generated-sources/antlr4/com/nicesql/sql/parser</outputDirectory>
                             <libDirectory>target/generated-sources/antlr4/com/nicesql/sql/parser</libDirectory>
                             <visitor>true</visitor>
