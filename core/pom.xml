@@ -9,7 +9,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>core</artifactId>
+    <artifactId>starsql-core</artifactId>
 
     <properties>
         <maven.compiler.release>${java.version}</maven.compiler.release>

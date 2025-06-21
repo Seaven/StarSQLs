@@ -49,7 +49,6 @@ public class FormatSubqueryTest extends PrinterTestBase {
         String result = printer.format(sql);
         
         // Should not format the EXISTS subquery
-        System.out.println("Exists result: " + result);
         Assertions.assertTrue(result.contains("EXISTS (SELECT 1 FROM table2 WHERE table2.id = table1.id)"));
     }
 
