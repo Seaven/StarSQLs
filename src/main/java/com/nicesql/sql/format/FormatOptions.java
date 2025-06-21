@@ -12,9 +12,18 @@
 
 package com.nicesql.sql.format;
 
+import com.google.common.base.Strings;
+import com.google.gson.Gson;
+
 public class FormatOptions {
+    // ================================
+    // mode
+    // ================================
     public boolean isCompact = true;
 
+    // ================================
+    // common keywords
+    // ================================
     public String indent = "";
 
     public boolean spaceBeforeComma = false;
@@ -59,11 +68,6 @@ public class FormatOptions {
 
     public boolean formatSubquery = false;
 
-    // ================================
-    // simplify flags
-    // ================================
-    public boolean simplifyBrackets = false;
-
     public static FormatOptions allFormatOptions() {
         FormatOptions options = new FormatOptions();
         options.isCompact = false;
@@ -91,8 +95,46 @@ public class FormatOptions {
         options.breakOrderBy = true;
         options.formatSubquery = true;
 
-        // simplify flags
-        options.simplifyBrackets = true;
         return options;
+    }
+
+    public static FormatOptions defaultOptions() {
+        FormatOptions options = new FormatOptions();
+        options.isCompact = false;
+        options.indent = Strings.repeat(" ", 4);
+        options.spaceBeforeComma = false;
+        options.spaceAfterComma = true;
+        options.maxLineLength = 120;
+        options.upperCaseKeyWords = true;
+        options.lowerCaseKeyWords = false;
+
+        // Expressions keywords
+        options.breakFunctionArgs = false;
+        options.alignFunctionArgs = true;
+        options.breakCaseWhen = true;
+        options.breakInList = false;
+        options.breakAndOr = false;
+
+        // Statements keywords
+        options.breakExplain = false;
+        options.breakCTE = true;
+        options.breakJoinRelations = false;
+        options.breakJoinOn = true;
+        options.breakSelectItems = false;
+        options.breakGroupByItems = false;
+        options.breakOrderBy = false;
+        options.formatSubquery = true;
+
+        return options;
+    }
+
+    public String toJson() {
+        Gson gson = new Gson();
+        return gson.toJson(this, FormatOptions.class);
+    }
+
+    public static FormatOptions fromJson(String json) {
+        Gson gson = new Gson();
+        return gson.fromJson(json, FormatOptions.class);
     }
 }
