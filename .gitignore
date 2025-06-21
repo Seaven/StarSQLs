@@ -1,9 +1,11 @@
 .idea/
-target/
-NiceSQL.iml
-gen/
-*.tokens
 .vscode/
-logs/
 .cursor/
 .antlr/
+
+*.tokens
+*.iml
+
+target/
+gen/
+logs/
