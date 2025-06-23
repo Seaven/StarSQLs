@@ -19,18 +19,18 @@ public class FormatOptions {
     // ================================
     // mode
     // ================================
-    public boolean isCompact = true;
+    public boolean isMinify = true;
 
     // ================================
     // common keywords
     // ================================
     public String indent = "";
 
+    public int maxLineLength = Integer.MAX_VALUE;
+
     public boolean spaceBeforeComma = false;
 
     public boolean spaceAfterComma = false;
-
-    public int maxLineLength = Integer.MAX_VALUE;
 
     public boolean upperCaseKeyWords = false;
 
@@ -70,7 +70,7 @@ public class FormatOptions {
 
     public static FormatOptions allFormatOptions() {
         FormatOptions options = new FormatOptions();
-        options.isCompact = false;
+        options.isMinify = false;
         options.indent = "    ";
         options.spaceBeforeComma = true;
         options.spaceAfterComma = true;
@@ -100,7 +100,7 @@ public class FormatOptions {
 
     public static FormatOptions defaultOptions() {
         FormatOptions options = new FormatOptions();
-        options.isCompact = false;
+        options.isMinify = false;
         options.indent = Strings.repeat(" ", 4);
         options.spaceBeforeComma = false;
         options.spaceAfterComma = true;

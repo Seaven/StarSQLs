@@ -30,9 +30,17 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class FormatMain implements ToolWindowFactory {
+    Map<String, JBCheckBox> optionBoxes = new LinkedHashMap<>();
+
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
         toolWindow.getComponent().add(createMainPanel(project));
+    }
+
+    private JBCheckBox registerOption(String key, String label, boolean selected) {
+        JBCheckBox checkBox = new JBCheckBox(label, selected);
+        optionBoxes.put(key, checkBox);
+        return checkBox;
     }
 
     private JComponent createMainPanel(Project project) {
@@ -47,41 +55,44 @@ public class FormatMain implements ToolWindowFactory {
         sqlArea.setLineWrap(true);
         JBScrollPane scrollPane = new JBScrollPane(sqlArea);
 
-        // Build UI
-        JPanel optionsPanel = new JPanel(new GridLayout(0, 2));
-        for (JBCheckBox box : optionBoxes.values()) {
-            optionsPanel.add(box);
-        }
-        // Options area (checkbox)
-        Map<String, JBCheckBox> optionBoxes = new LinkedHashMap<>();
         FormatOptions options = FormatOptions.defaultOptions();
-        optionBoxes.put("upperCaseKeyWords", new JBCheckBox("Uppercase", options.upperCaseKeyWords));
 
-        optionBoxes.put("spaceBeforeComma", new JBCheckBox("Space before comma", options.spaceBeforeComma));
-        optionBoxes.put("spaceAfterComma", new JBCheckBox("Space after comma", options.spaceAfterComma));
-        optionBoxes.put("breakFunctionArgs", new JBCheckBox("Break function args", options.breakFunctionArgs));
-        optionBoxes.put("alignFunctionArgs", new JBCheckBox("Align function args", options.alignFunctionArgs));
-        optionBoxes.put("breakCaseWhen", new JBCheckBox("Break case when", options.breakCaseWhen));
-        optionBoxes.put("breakInList", new JBCheckBox("Break in list", options.breakInList));
-        optionBoxes.put("breakAndOr", new JBCheckBox("Break and/or", options.breakAndOr));
-        optionBoxes.put("breakExplain", new JBCheckBox("Break explain", options.breakExplain));
-        optionBoxes.put("breakCTE", new JBCheckBox("Break CTE", options.breakCTE));
-        optionBoxes.put("breakJoinRelations",
-                new JBCheckBox("Break join relations", options.breakJoinRelations));
-        optionBoxes.put("breakJoinOn", new JBCheckBox("Break join on", options.breakJoinOn));
-        optionBoxes.put("breakSelectItems", new JBCheckBox("Break select items", options.breakSelectItems));
-        optionBoxes.put("breakGroupByItems", new JBCheckBox("Break group by items", options.breakGroupByItems));
-        optionBoxes.put("breakOrderBy", new JBCheckBox("Break order by", options.breakOrderBy));
-        optionBoxes.put("formatSubquery", new JBCheckBox("Format subquery", options.formatSubquery));
+        // Build UI
+        int row = 0;
+        int col = 3;
+        JPanel optionsPanel = new JPanel(new GridLayout(row, col));
 
-        // Additional parameters
+        // Common parameters
         JBTextField indentField = new JBTextField(options.indent);
         JBTextField maxLineLengthField = new JBTextField(String.valueOf(options.maxLineLength));
+        optionsPanel.add(new JLabel("Indent:"), row);
+        optionsPanel.add(indentField, row + 1);
+        optionsPanel.add(new JLabel("Max Line Length:"), row += col);
+        optionsPanel.add(maxLineLengthField, row + 1);
 
-        optionsPanel.add(new JLabel("Indent:"));
-        optionsPanel.add(indentField);
-        optionsPanel.add(new JLabel("Max Line Length:"));
-        optionsPanel.add(maxLineLengthField);
+        // Options area (checkbox)
+        optionsPanel.add(registerOption("upperCaseKeywords", "Uppercase keywords", options.upperCaseKeyWords),
+                row += col);
+
+        optionsPanel.add(new JLabel("Comma: "), row += col);
+        optionsPanel.add(registerOption("spaceBeforeComma", "Before comma", options.spaceBeforeComma), row + 1);
+        optionsPanel.add(registerOption("spaceAfterComma", "After comma", options.spaceAfterComma), row + 1);
+        optionsPanel.add(new JLabel("Expressions: "), row += col);
+        optionsPanel.add(registerOption("breakFunctionArgs", "Break function args", options.breakFunctionArgs),
+                row + 1);
+        optionsPanel.add(registerOption("alignFunctionArgs", "Align function args", options.alignFunctionArgs));
+        optionsPanel.add(registerOption("breakCaseWhen", "Break case when", options.breakCaseWhen));
+        optionsPanel.add(registerOption("breakInList", "Break in list", options.breakInList));
+        optionsPanel.add(registerOption("breakAndOr", "Break and/or", options.breakAndOr));
+        optionsPanel.add(new JLabel("Statements: "), row = row / col + 1);
+        optionsPanel.add(registerOption("breakExplain", "Break explain", options.breakExplain));
+        optionsPanel.add(registerOption("breakCTE", "Break CTE", options.breakCTE));
+        optionsPanel.add(registerOption("breakJoinRelations", "Break join relations", options.breakJoinRelations));
+        optionsPanel.add(registerOption("breakJoinOn", "Break join on", options.breakJoinOn));
+        optionsPanel.add(registerOption("breakSelectItems", "Break select items", options.breakSelectItems));
+        optionsPanel.add(registerOption("breakGroupByItems", "Break group by items", options.breakGroupByItems));
+        optionsPanel.add(registerOption("breakOrderBy", "Break order by", options.breakOrderBy));
+        optionsPanel.add(registerOption("formatSubquery", "Format subquery", options.formatSubquery));
 
         // Buttons
         JButton formatBtn = new JButton("Format");
@@ -105,21 +116,16 @@ public class FormatMain implements ToolWindowFactory {
                 .addComponent(titlePanel)
                 .addComponent(new JLabel("SQL Input/Output:"))
                 .addComponent(scrollPane)
-                .addComponent(new JLabel("Format Options:"))
                 .addComponent(optionsPanel)
                 .addComponent(btnPanel)
                 .getPanel();
     }
 
-    private void addOptionBoxes(Map<String, JBCheckBox> optionBoxes, String key, String label, FormatOptions options) {
-        optionBoxes.put("spaceBeforeComma", new JBCheckBox("Space before comma", options.spaceBeforeComma));
-    }
-
     private FormatOptions collectOptions(Map<String, JBCheckBox> boxes, JBTextField indentField,
-                                         JBTextField maxLineLengthField, boolean forceCompact) {
+                                         JBTextField maxLineLengthField, boolean isMinify) {
         FormatOptions opts = new FormatOptions();
-        opts.isCompact = forceCompact;
-        if (opts.isCompact) {
+        opts.isMinify = isMinify;
+        if (opts.isMinify) {
             return opts;
         }
         opts.upperCaseKeyWords = boxes.get("upperCaseKeyWords").isSelected();

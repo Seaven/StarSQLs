@@ -1,3 +1,15 @@
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package com.starsqls.format;
 
 import com.google.common.base.Strings;
@@ -23,7 +35,7 @@ public class SQLBuilder {
     public SQLBuilder(FormatOptions options) {
         this.options = options;
         this.sql = new StringBuilder();
-        this.prefixUnit = options.isCompact ? "" : " ";
+        this.prefixUnit = options.isMinify ? "" : " ";
 
         String temp = ",";
         if (options.spaceAfterComma) {
@@ -33,7 +45,7 @@ public class SQLBuilder {
             temp = " " + temp;
         }
         this.comma = temp;
-        this.newLine = options.isCompact ? "" : "\n";
+        this.newLine = options.isMinify ? "" : "\n";
     }
 
     public void intoLevel(Runnable func) {
@@ -89,7 +101,7 @@ public class SQLBuilder {
     }
 
     private void breakMaxLength() {
-        if (options.isCompact || options.maxLineLength <= 0) {
+        if (options.isMinify || options.maxLineLength <= 0) {
             return;
         }
         int preLineIndex = sql.lastIndexOf("\n");
