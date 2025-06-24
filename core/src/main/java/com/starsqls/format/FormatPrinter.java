@@ -504,14 +504,14 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitBracketHint(StarRocksParser.BracketHintContext ctx) {
-        sql.appendKey("[");
+        sql.appendKey("[", false, false);
         visitList(ctx.identifier(), comma());
-        if (ctx.primaryExpression() == null) {
+        if (ctx.primaryExpression() != null) {
             sql.append("|");
             visit(ctx.primaryExpression());
             visit(ctx.literalExpressionList());
         }
-        sql.appendKey("]");
+        sql.appendKey("]", false, true);
         return null;
     }
 

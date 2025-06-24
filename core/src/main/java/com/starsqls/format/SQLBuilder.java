@@ -106,7 +106,7 @@ public class SQLBuilder {
         }
         int preLineIndex = sql.lastIndexOf("\n");
         int currentLineLength = sql.length() - preLineIndex;
-        if (currentLineLength > options.maxLineLength && lastBreakPoint > 0) {
+        if (currentLineLength > options.maxLineLength && lastBreakPoint > 0 && preLineIndex < lastBreakPoint) {
             if (StringUtils.isBlank(sql.substring(preLineIndex, lastBreakPoint).trim())) {
                 return;
             }

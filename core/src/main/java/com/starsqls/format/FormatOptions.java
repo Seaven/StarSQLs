@@ -119,7 +119,7 @@ public class FormatOptions {
         options.breakExplain = false;
         options.breakCTE = true;
         options.breakJoinRelations = false;
-        options.breakJoinOn = true;
+        options.breakJoinOn = false;
         options.breakSelectItems = false;
         options.breakGroupByItems = false;
         options.breakOrderBy = false;
