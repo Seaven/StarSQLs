@@ -16,9 +16,9 @@ FROM (
             AND s_nationkey = n1.n_nationkey
             AND c_nationkey = n2.n_nationkey
             AND ((n1.n_name = 'CANADA'
-                    AND n2.n_name = 'IRAN')
-                OR (n1.n_name = 'IRAN'
-                    AND n2.n_name = 'CANADA'))
+            AND n2.n_name = 'IRAN')
+            OR (n1.n_name = 'IRAN'
+            AND n2.n_name = 'CANADA'))
             AND l_shipdate BETWEEN date'1995-01-01' AND date'1996-12-31'
     ) AS shipping
 GROUP BY 

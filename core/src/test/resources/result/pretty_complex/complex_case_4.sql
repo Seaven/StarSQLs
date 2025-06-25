@@ -15,7 +15,7 @@ hierarchy AS (
         h.level + 1
     FROM departments d
         JOIN hierarchy h
-        ON d.parent_id = h.id
+            ON d.parent_id = h.id
 ) , 
 latest_salary AS (
     SELECT 
@@ -52,15 +52,15 @@ SELECT
     ) AS project_count
 FROM employees e
     LEFT JOIN hierarchy h
-    ON e.dept_id = h.id
+        ON e.dept_id = h.id
     RIGHT JOIN latest_salary ls
-    ON e.id = ls.employee_id
+        ON e.id = ls.employee_id
     FULL OUTER JOIN managers m
-    ON e.manager_id = m.id
+        ON e.manager_id = m.id
     LEFT SEMI JOIN mentors mt
-    ON mt.mentee_id = e.id
+        ON mt.mentee_id = e.id
     LEFT ANTI JOIN blacklist b
-    ON b.employee_id = e.id
+        ON b.employee_id = e.id
 WHERE e.status = 'active'
     AND h.level <= 5
 GROUP BY 

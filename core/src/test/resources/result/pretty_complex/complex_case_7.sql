@@ -48,7 +48,7 @@ product_metrics AS (
                                sd.amount)) AS channel_metrics
     FROM products p
         JOIN sales_data sd
-        ON p.id = sd.product_id
+            ON p.id = sd.product_id
     GROUP BY 
         p.id , 
         p.name , 
@@ -74,7 +74,7 @@ store_performance AS (
         END)} AS channel_sales
     FROM stores s
         JOIN sales_data sd
-        ON s.id = sd.store_id
+            ON s.id = sd.store_id
     GROUP BY 
         s.id , 
         s.name , 
@@ -113,7 +113,7 @@ SELECT
                                     SUM(sd.amount)))
         FROM products p
             JOIN sales_data sd
-            ON p.id = sd.product_id
+                ON p.id = sd.product_id
         WHERE p.id = pm.id
         GROUP BY 
             p.id , 
@@ -134,19 +134,19 @@ SELECT
     ) AS sales_history
 FROM product_metrics pm
     LEFT JOIN store_performance sp
-    ON pm.id = sp.id
+        ON pm.id = sp.id
     LEFT JOIN LATERAL (
         SELECT 
             ARRAY_AGG(DISTINCT c.id) AS customer_ids , 
             MAP{'total':COUNT(*) , 'avg_amount':AVG(o.amount)} AS customer_metrics
         FROM customers c
             JOIN orders o
-            ON c.id = o.customer_id
+                ON c.id = o.customer_id
             JOIN order_items oi
-            ON o.id = oi.order_id
+                ON o.id = oi.order_id
         WHERE oi.product_id = pm.id
     ) c
-    ON true
+        ON true
 WHERE pm.total_amount > pm.category_avg
     AND sp.total_sales > (
         SELECT 

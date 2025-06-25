@@ -18,7 +18,7 @@ employee_hierarchy AS (
                      e.id)
     FROM employees e
         JOIN employee_hierarchy eh
-        ON e.manager_id = eh.id
+            ON e.manager_id = eh.id
 ) , 
 sales_metrics AS (
     SELECT 
@@ -45,7 +45,7 @@ customer_segments AS (
         MAP{'purchases':COUNT(*) , 'last_order':MAX(o.date)} AS metrics
     FROM customers c
         LEFT JOIN orders o
-        ON c.id = o.customer_id
+            ON c.id = o.customer_id
     GROUP BY 
         c.id , 
         c.name
@@ -91,11 +91,11 @@ SELECT
     ) AS project_details
 FROM employee_hierarchy e
     LEFT JOIN sales_metrics sm
-    ON e.id = sm.salesperson_id
+        ON e.id = sm.salesperson_id
     LEFT JOIN customer_segments cs
-    ON e.id = cs.id
+        ON e.id = cs.id
     LEFT JOIN TABLE (flatten(ARRAY<INT>[1 , 2 , 3])) t
-    ON true
+        ON true
     LEFT JOIN LATERAL (
         SELECT 
             ARRAY_AGG(product_id) AS product_ids
@@ -107,9 +107,9 @@ FROM employee_hierarchy e
                 WHERE salesperson_id = e.id
             )
     ) oi
-    ON true
+        ON true
     LEFT JOIN products p
-    ON p.id = ANY(oi.product_ids)
+        ON p.id = ANY(oi.product_ids)
 WHERE e.level <= 5
     AND sm.total_sales > (
         SELECT 

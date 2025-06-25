@@ -11,7 +11,7 @@ inventory_analysis AS (
         MAP{'min':MIN(i.quantity) , 'max':MAX(i.quantity) , 'avg':AVG(i.quantity)} AS stock_metrics
     FROM products p
         JOIN inventory i
-        ON p.id = i.product_id
+            ON p.id = i.product_id
     WHERE i.last_updated >= DATE'2024-01-01'
     GROUP BY 
         p.id , 
@@ -29,9 +29,9 @@ supplier_performance AS (
         FIRST_VALUE(s.name) OVER (PARTITION BY p.category ORDER BY SUM(p.price * i.quantity) DESC) AS top_supplier_by_category
     FROM suppliers s
         JOIN products p
-        ON s.id = p.supplier_id
+            ON s.id = p.supplier_id
         JOIN inventory i
-        ON p.id = i.product_id
+            ON p.id = i.product_id
     GROUP BY 
         s.id , 
         s.name , 
@@ -51,9 +51,9 @@ category_metrics AS (
                                p.price)) AS top_products
     FROM categories c
         JOIN products p
-        ON c.id = p.category_id
+            ON c.id = p.category_id
         JOIN inventory i
-        ON p.id = i.product_id
+            ON p.id = i.product_id
     GROUP BY 
         c.id , 
         c.name
@@ -90,9 +90,9 @@ SELECT
                         w.name)
         FROM products p
             JOIN inventory i
-            ON p.id = i.product_id
+                ON p.id = i.product_id
             JOIN warehouses w
-            ON i.warehouse_id = w.id
+                ON i.warehouse_id = w.id
         WHERE p.id = ia.id
         ORDER BY 
             i.quantity DESC
@@ -112,21 +112,21 @@ SELECT
     ) AS historical_data
 FROM inventory_analysis ia
     LEFT JOIN supplier_performance sp
-    ON ia.id = sp.id
+        ON ia.id = sp.id
     LEFT JOIN category_metrics cm
-    ON ia.category = cm.name
+        ON ia.category = cm.name
     LEFT JOIN TABLE (flatten(ia.warehouse_ids)) w
-    ON true
+        ON true
     LEFT JOIN LATERAL (
         SELECT 
             ARRAY_AGG(DISTINCT o.id) AS order_ids , 
             MAP{'total':COUNT(*) , 'avg_amount':AVG(o.amount)} AS order_metrics
         FROM orders o
             JOIN order_items oi
-            ON o.id = oi.order_id
+                ON o.id = oi.order_id
         WHERE oi.product_id = ia.id
     ) o
-    ON true
+        ON true
 WHERE ia.total_stock > ia.category_avg
     AND sp.total_value > (
         SELECT 

@@ -13,11 +13,11 @@ customer_segments AS (/* Identify customer segments based on purchase behavior *
         ARRAY_AGG(DISTINCT p.category) AS preferred_categories
     FROM customers c
         LEFT JOIN orders o
-        ON c.id = o.customer_id
+            ON c.id = o.customer_id
         LEFT JOIN order_items oi
-        ON o.id = oi.order_id
+            ON o.id = oi.order_id
         LEFT JOIN products p
-        ON oi.product_id = p.id
+            ON oi.product_id = p.id
     WHERE o.order_date >= DATE'2024-01-01'
     GROUP BY 
         c.id , 
@@ -36,9 +36,9 @@ product_analysis AS (/* Analyze product performance metrics */
         MAP{'min_price':MIN(oi.price) , 'max_price':MAX(oi.price) , 'avg_price':AVG(oi.price)} AS price_metrics
     FROM products p
         JOIN order_items oi
-        ON p.id = oi.product_id
+            ON p.id = oi.product_id
         JOIN orders o
-        ON oi.order_id = o.id
+            ON oi.order_id = o.id
     WHERE o.order_date >= DATE'2024-01-01'
     GROUP BY 
         p.id , 
@@ -65,7 +65,7 @@ inventory_status AS (/* Monitor inventory levels and movements */
                      w.location) AS warehouse_info
     FROM inventory_movements i
         JOIN warehouses w
-        ON i.warehouse_id = w.id
+            ON i.warehouse_id = w.id
     WHERE i.movement_date >= DATE'2024-01-01'
     GROUP BY 
         i.product_id , 
@@ -107,11 +107,11 @@ SELECT/* Customer information */
                                     AVG(oi.quantity)))
         FROM customers c
             JOIN orders o
-            ON c.id = o.customer_id
+                ON c.id = o.customer_id
             JOIN order_items oi
-            ON o.id = oi.order_id
+                ON o.id = oi.order_id
             JOIN products p
-            ON oi.product_id = p.id
+                ON oi.product_id = p.id
         WHERE c.id = cs.id
             AND p.id = pa.id
         GROUP BY 
@@ -128,28 +128,28 @@ SELECT/* Customer information */
                                    oi.quantity * oi.price))
         FROM orders o
             JOIN order_items oi
-            ON o.id = oi.order_id
+                ON o.id = oi.order_id
         WHERE o.customer_id = cs.id
             AND oi.product_id = pa.id
             AND o.order_date >= DATE'2024-01-01'
     ) AS order_history
 FROM customer_segments cs
     CROSS JOIN product_analysis pa
-    
+        
     LEFT JOIN inventory_status ins
-    ON pa.id = ins.product_id/* Join with customer preferences */
+        ON pa.id = ins.product_id/* Join with customer preferences */
     LEFT JOIN LATERAL (
         SELECT 
             ARRAY_AGG(DISTINCT p.category) AS categories , 
             MAP{'count':COUNT(*) , 'avg_price':AVG(p.price)} AS category_metrics
         FROM products p
             JOIN order_items oi
-            ON p.id = oi.product_id
+                ON p.id = oi.product_id
             JOIN orders o
-            ON oi.order_id = o.id
+                ON oi.order_id = o.id
         WHERE o.customer_id = cs.id
     ) cp
-    ON true
+        ON true
 WHERE/* Filter conditions */ cs.total_spent > 1000
     AND pa.total_revenue > pa.category_avg
     AND ins.current_stock > 0
@@ -158,7 +158,7 @@ WHERE/* Filter conditions */ cs.total_spent > 1000
             1
         FROM orders o
             JOIN order_items oi
-            ON o.id = oi.order_id
+                ON o.id = oi.order_id
         WHERE o.customer_id = cs.id
             AND oi.product_id = pa.id
             AND o.order_date >= DATE'2024-01-01'

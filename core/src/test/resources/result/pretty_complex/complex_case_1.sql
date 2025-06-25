@@ -48,18 +48,18 @@ SELECT
     ) AS max_payment
 FROM ranked_customers c
     LEFT JOIN orders o
-    ON c.id = o.customer_id
+        ON c.id = o.customer_id
     LEFT SEMI JOIN sales_cte s
-    ON s.seller_id = o.seller_id
+        ON s.seller_id = o.seller_id
     RIGHT ANTI JOIN blacklist b
-    ON b.customer_id = c.id
+        ON b.customer_id = c.id
     INNER JOIN order_items oi
-    ON o.id = oi.order_id
+        ON o.id = oi.order_id
     JOIN products p
-    ON oi.product_id = p.id
+        ON oi.product_id = p.id
 WHERE c.rnk <= 100
-    AND o.status IN 
-    ('shipped' , 'delivered')
+    AND o.status IN ('shipped' , 
+    'delivered')
     AND p.price BETWEEN 10 AND 1000
     AND o.created_at > DATE'2024-01-01'
 ORDER BY 

@@ -12,8 +12,8 @@ SELECT
     END) AS low_line_count
 FROM orders , lineitem
 WHERE o_orderkey = l_orderkey
-    AND l_shipmode IN 
-    ('REG AIR' , 'MAIL')
+    AND l_shipmode IN ('REG AIR' , 
+    'MAIL')
     AND l_commitdate < l_receiptdate
     AND l_shipdate < l_commitdate
     AND l_receiptdate >= date'1997-01-01'

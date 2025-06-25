@@ -325,11 +325,9 @@ public class FormatPrinter extends FormatPrinterBase {
         }
         if (options.breakJoinRelations) {
             sql.appendBreak(true);
-            sql.intoLevel(() -> visitList(ctx.joinRelation(), sql.newBreak(options.breakJoinRelations)));
+            visitList(ctx.joinRelation(), sql.newBreak(options.breakJoinRelations));
         } else {
-            sql.intoAutoBreak(() -> {
-                sql.intoLevel(() -> visitList(ctx.joinRelation(), newLine()));
-            });
+            sql.intoAutoBreak(() -> visitList(ctx.joinRelation(), newLine()));
         }
         return null;
     }
@@ -497,12 +495,10 @@ public class FormatPrinter extends FormatPrinterBase {
         visit(ctx.bracketHint());
         sql.appendKey(ctx.LATERAL());
         visit(ctx.rightRelation);
-        if (options.alignJoinOn) {
-            sql.intoFixPrefix(() -> visit(ctx.joinCriteria()));
-        } else {
+        sql.intoLevel(() -> {
             sql.appendBreak(options.breakJoinOn);
             visit(ctx.joinCriteria());
-        }
+        });
         return null;
     }
 
@@ -523,7 +519,11 @@ public class FormatPrinter extends FormatPrinterBase {
     public Void visitJoinCriteria(StarRocksParser.JoinCriteriaContext ctx) {
         if (ctx.ON() != null) {
             sql.appendKey(ctx.ON());
-            visit(ctx.expression());
+            if (options.alignJoinOn) {
+                sql.intoAutoBreak(() -> sql.intoFixPrefix(() -> visit(ctx.expression())));
+            } else {
+                visit(ctx.expression());
+            }
         }
         if (ctx.USING() != null) {
             sql.appendKey(ctx.USING());
