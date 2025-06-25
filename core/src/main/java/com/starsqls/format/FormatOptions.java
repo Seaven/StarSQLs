@@ -64,6 +64,8 @@ public class FormatOptions {
 
     public boolean breakJoinOn = false;
 
+    public boolean alignJoinOn = false;
+
     public boolean breakSelectItems = false;
 
     public boolean breakGroupByItems = false;
@@ -114,9 +116,11 @@ public class FormatOptions {
 
         // Expressions keywords
         options.breakFunctionArgs = false;
-        options.alignFunctionArgs = true;
-        options.breakCaseWhen = true;
+        options.alignFunctionArgs = false;
+        options.breakCaseWhen = false;
+        options.alignCaseWhen = false;
         options.breakInList = false;
+        options.alignInList = false;
         options.breakAndOr = false;
 
         // Statements keywords
@@ -124,6 +128,7 @@ public class FormatOptions {
         options.breakCTE = true;
         options.breakJoinRelations = false;
         options.breakJoinOn = false;
+        options.alignJoinOn = true;
         options.breakSelectItems = false;
         options.breakGroupByItems = false;
         options.breakOrderBy = false;
