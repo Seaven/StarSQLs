@@ -41,6 +41,8 @@ public class FormatOptions {
     // ================================
     public boolean breakFunctionArgs = false;
 
+    public boolean alignFunctionArgs = false;
+
     public boolean breakCaseWhen = false;
 
     public boolean breakInList = false;
@@ -78,6 +80,7 @@ public class FormatOptions {
 
         // Expressions keywords
         options.breakFunctionArgs = true;
+        options.alignFunctionArgs = true;
         options.breakCaseWhen = true;
         options.breakInList = true;
         options.breakAndOr = true;
@@ -107,6 +110,7 @@ public class FormatOptions {
 
         // Expressions keywords
         options.breakFunctionArgs = false;
+        options.alignFunctionArgs = true;
         options.breakCaseWhen = true;
         options.breakInList = false;
         options.breakAndOr = false;
