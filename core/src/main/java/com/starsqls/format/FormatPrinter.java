@@ -20,6 +20,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+import java.util.function.Function;
 
 public class FormatPrinter extends FormatPrinterBase {
 
@@ -730,15 +731,30 @@ public class FormatPrinter extends FormatPrinterBase {
     public Void visitSimpleCase(StarRocksParser.SimpleCaseContext ctx) {
         sql.appendKey(ctx.CASE().getText(), false, true);
         visit(ctx.caseExpr);
-        sql.intoLevel(() -> {
-            sql.appendBreak(options.breakCaseWhen);
-            visitList(ctx.whenClause(), options.breakCaseWhen ? newLine() : " ");
-            if (ctx.ELSE() != null) {
-                sql.appendBreak(options.breakCaseWhen);
-                sql.appendKey(ctx.ELSE());
-                visit(ctx.elseExpression);
+        Function<Void, Void> func = o -> {
+            if (options.breakCaseWhen) {
+                sql.intoLevel(() -> {
+                    sql.appendBreak(true);
+                    visitList(ctx.whenClause(), newLine());
+                    if (ctx.ELSE() != null) {
+                        sql.appendBreak(options.breakCaseWhen);
+                        sql.appendKey(ctx.ELSE());
+                        visit(ctx.elseExpression);
+                    }
+                });
+            } else {
+                visitListAutoBreak(ctx.whenClause(), " ");
+                if (ctx.ELSE() != null) {
+                    sql.appendKey(ctx.ELSE());
+                    visit(ctx.elseExpression);
+                }
             }
-        });
+            return null;
+        };
+        if (options.alignCaseWhen) {
+            sql.intoFixPrefix(func);
+        }
+
         sql.appendBreak(options.breakCaseWhen);
         sql.appendKey(ctx.END().getText(), true, false);
         return null;
