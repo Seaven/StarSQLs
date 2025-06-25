@@ -1059,13 +1059,13 @@ public class FormatPrinter extends FormatPrinterBase {
         sql.append(ctx.qualifiedName().getText());
         if (options.breakFunctionArgs) {
             if (options.alignFunctionArgs) {
-                sql.intoParentheses(() -> sql.intoPrefix(() -> visitList(ctx.expression(), commaBreak(true))));
+                sql.intoParentheses(() -> sql.intoFixPrefix(() -> visitList(ctx.expression(), commaBreak(true))));
             } else {
                 sql.intoParentheses(() -> visitList(ctx.expression(), commaBreak(true)));
             }
         } else if (options.alignFunctionArgs) {
             sql.intoParentheses(
-                    () -> sql.intoPrefix(() -> sql.intoAutoBreak(() -> visitList(ctx.expression(), comma()))));
+                    () -> sql.intoFixPrefix(() -> sql.intoAutoBreak(() -> visitList(ctx.expression(), comma()))));
         } else {
             sql.intoParentheses(() -> visitList(ctx.expression(), comma()));
         }
@@ -1159,13 +1159,13 @@ public class FormatPrinter extends FormatPrinterBase {
         sql.appendKey(ctx.getChild(0).getText(), false, false);
         if (options.breakFunctionArgs) {
             if (options.alignFunctionArgs) {
-                sql.intoParentheses(() -> sql.intoPrefix(() -> visitList(ctx.expression(), commaBreak(true))));
+                sql.intoParentheses(() -> sql.intoFixPrefix(() -> visitList(ctx.expression(), commaBreak(true))));
             } else {
                 sql.intoParentheses(() -> visitList(ctx.expression(), commaBreak(true)));
             }
         } else if (options.alignFunctionArgs) {
             sql.intoParentheses(
-                    () -> sql.intoPrefix(() -> sql.intoAutoBreak(() -> visitList(ctx.expression(), comma()))));
+                    () -> sql.intoFixPrefix(() -> sql.intoAutoBreak(() -> visitList(ctx.expression(), comma()))));
         } else {
             sql.intoParentheses(() -> visitList(ctx.expression(), comma()));
         }

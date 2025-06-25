@@ -45,7 +45,11 @@ public class FormatOptions {
 
     public boolean breakCaseWhen = false;
 
+    public boolean alignCaseWhen = false;
+
     public boolean breakInList = false;
+
+    public boolean alignInList = false;
 
     public boolean breakAndOr = false;
 
