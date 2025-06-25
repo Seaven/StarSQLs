@@ -54,7 +54,7 @@ public class SQLBuilder {
         indentLevel--;
     }
 
-    public void intoPrefix(Runnable func) {
+    public void intoFixPrefix(Runnable func) {
         int oldIndentLevel = indentLevel;
         indentLevel = 0;
         int count = sql.length() - sql.lastIndexOf("\n") - 1;
@@ -104,15 +104,21 @@ public class SQLBuilder {
         if (options.isMinify || options.maxLineLength <= 0) {
             return;
         }
-        int preLineIndex = sql.lastIndexOf("\n");
+        int preLineIndex = Math.max(0, sql.lastIndexOf("\n"));
         int currentLineLength = sql.length() - preLineIndex;
         if (currentLineLength > options.maxLineLength && lastBreakPoint > 0 && preLineIndex < lastBreakPoint) {
             if (StringUtils.isBlank(sql.substring(preLineIndex, lastBreakPoint).trim())) {
                 return;
             }
             // If current line exceeds max length, break at the last break point
-            String content = sql.substring(lastBreakPoint);
-            sql.setLength(lastBreakPoint);
+            int breakIndex = lastBreakPoint;
+            for (; breakIndex < sql.length(); breakIndex++) {
+                if (!Character.isWhitespace(sql.charAt(breakIndex))) {
+                    break;
+                }
+            }
+            String content = sql.substring(breakIndex);
+            sql.setLength(breakIndex);
             sql.append(newLine());
             sql.append(content);
         }

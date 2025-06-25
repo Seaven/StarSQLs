@@ -204,7 +204,7 @@ public class FormatPrinter extends FormatPrinterBase {
         visit(ctx.setQuantifier());
         sql.intoLevel(() -> {
             sql.appendBreak(options.breakSelectItems);
-            visitList(ctx.selectItem(), commaBreak(options.breakSelectItems));
+            visitListAutoBreak(ctx.selectItem(), commaBreak(options.breakSelectItems));
         });
         if (!StringUtils.isBlank(ctx.fromClause().getText())) {
             sql.appendNewLine();
@@ -269,31 +269,27 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitSelectSingle(StarRocksParser.SelectSingleContext ctx) {
-        sql.intoAutoBreak(() -> {
-            visit(ctx.expression());
-            sql.appendKey(ctx.AS());
-            if (ctx.identifier() != null) {
-                sql.append(ctx.identifier().getText(), true, false);
-            }
-            if (ctx.string() != null) {
-                sql.append(ctx.string().getText(), true, false);
-            }
-        });
+        visit(ctx.expression());
+        sql.appendKey(ctx.AS());
+        if (ctx.identifier() != null) {
+            sql.append(ctx.identifier().getText(), true, false);
+        }
+        if (ctx.string() != null) {
+            sql.append(ctx.string().getText(), true, false);
+        }
         return null;
     }
 
     @Override
     public Void visitSelectAll(StarRocksParser.SelectAllContext ctx) {
-        sql.intoAutoBreak(() -> {
-            if (ctx.qualifiedName() != null) {
-                sql.append(ctx.qualifiedName().getText());
-                sql.append(".");
-            }
-            sql.append(ctx.ASTERISK_SYMBOL().getText());
-            if (ctx.excludeClause() != null) {
-                visit(ctx.excludeClause());
-            }
-        });
+        if (ctx.qualifiedName() != null) {
+            sql.append(ctx.qualifiedName().getText());
+            sql.append(".");
+        }
+        sql.append(ctx.ASTERISK_SYMBOL().getText());
+        if (ctx.excludeClause() != null) {
+            visit(ctx.excludeClause());
+        }
         return null;
     }
 
@@ -603,9 +599,12 @@ public class FormatPrinter extends FormatPrinterBase {
     @Override
     public Void visitLogicalBinary(StarRocksParser.LogicalBinaryContext ctx) {
         visit(ctx.left);
-        sql.appendBreak(options.breakAndOr);
-        sql.appendKey(ctx.operator.getText());
-        return visit(ctx.right);
+        sql.intoAutoBreak(() -> {
+            sql.appendBreak(options.breakAndOr);
+            sql.appendKey(ctx.operator.getText());
+            visit(ctx.right);
+        });
+        return null;
     }
 
     @Override
@@ -674,8 +673,8 @@ public class FormatPrinter extends FormatPrinterBase {
     public Void visitInList(StarRocksParser.InListContext ctx) {
         visit(ctx.value);
         sql.appendKey(ctx.NOT()).appendKey(ctx.IN());
-        sql.appendBreak(options.breakInList);
-        sql.intoParentheses(() -> visit(ctx.expressionList()));
+        sql.intoParentheses(
+                () -> visitListAutoBreak(ctx.expressionList().expression(), commaBreak(options.breakInList)));
         return null;
     }
 
@@ -849,7 +848,7 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitParenthesizedExpression(StarRocksParser.ParenthesizedExpressionContext ctx) {
-        sql.intoParentheses(() -> sql.intoLevel(() -> visit(ctx.expression())));
+        sql.intoAutoBreak(() -> sql.intoParentheses(() -> visit(ctx.expression())));
         return null;
     }
 
@@ -918,15 +917,23 @@ public class FormatPrinter extends FormatPrinterBase {
     @Override
     public Void visitSearchedCase(StarRocksParser.SearchedCaseContext ctx) {
         sql.appendKey(ctx.CASE(), false, true);
-        sql.intoLevel(() -> {
-            sql.appendBreak(options.breakCaseWhen);
-            visitList(ctx.whenClause(), options.breakCaseWhen ? newLine() : " ");
+        if (options.breakCaseWhen) {
+            sql.intoLevel(() -> {
+                sql.appendBreak(true);
+                visitList(ctx.whenClause(), newLine());
+                if (ctx.ELSE() != null) {
+                    sql.appendBreak(options.breakCaseWhen);
+                    sql.appendKey(ctx.ELSE());
+                    visit(ctx.elseExpression);
+                }
+            });
+        } else {
+            visitList(ctx.whenClause(), " ");
             if (ctx.ELSE() != null) {
-                sql.appendBreak(options.breakCaseWhen);
                 sql.appendKey(ctx.ELSE());
                 visit(ctx.elseExpression);
             }
-        });
+        }
         sql.appendBreak(options.breakCaseWhen);
         sql.appendKey(ctx.END(), true, false);
         return null;
@@ -1162,10 +1169,12 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitWhenClause(StarRocksParser.WhenClauseContext ctx) {
-        sql.appendKey(ctx.WHEN());
-        visit(ctx.condition);
-        sql.appendKey(ctx.THEN());
-        visit(ctx.result);
+        sql.intoAutoBreak(() -> {
+            sql.appendKey(ctx.WHEN());
+            visit(ctx.condition);
+            sql.appendKey(ctx.THEN());
+            visit(ctx.result);
+        });
         return null;
     }
 
