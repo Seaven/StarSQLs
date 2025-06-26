@@ -28,13 +28,17 @@ public class FormatOptions {
 
     public int maxLineLength = Integer.MAX_VALUE;
 
-    public boolean spaceBeforeComma = false;
+    public enum CommaStyle {
+        NONE, SPACE_BEFORE, SPACE_AFTER, BOTH
+    }
 
-    public boolean spaceAfterComma = false;
+    public CommaStyle commaStyle = CommaStyle.NONE;
 
-    public boolean upperCaseKeyWords = false;
+    public enum KeyWordStyle {
+        UPPER_CASE, LOWER_CASE, NONE
+    }
 
-    public boolean lowerCaseKeyWords = false;
+    public KeyWordStyle keyWordStyle = KeyWordStyle.NONE;
 
     // ================================
     // Expressions keywords
@@ -78,11 +82,9 @@ public class FormatOptions {
         FormatOptions options = new FormatOptions();
         options.isMinify = false;
         options.indent = "    ";
-        options.spaceBeforeComma = true;
-        options.spaceAfterComma = true;
+        options.commaStyle = CommaStyle.BOTH;
         options.maxLineLength = 120;
-        options.upperCaseKeyWords = true;
-        options.lowerCaseKeyWords = false;
+        options.keyWordStyle = KeyWordStyle.UPPER_CASE;
 
         // Expressions keywords
         options.breakFunctionArgs = true;
@@ -108,11 +110,9 @@ public class FormatOptions {
         FormatOptions options = new FormatOptions();
         options.isMinify = false;
         options.indent = Strings.repeat(" ", 4);
-        options.spaceBeforeComma = false;
-        options.spaceAfterComma = true;
+        options.commaStyle = CommaStyle.SPACE_AFTER;
         options.maxLineLength = 120;
-        options.upperCaseKeyWords = true;
-        options.lowerCaseKeyWords = false;
+        options.keyWordStyle = KeyWordStyle.UPPER_CASE;
 
         // Expressions keywords
         options.breakFunctionArgs = false;

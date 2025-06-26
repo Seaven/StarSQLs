@@ -38,10 +38,12 @@ public class SQLBuilder {
         this.prefixUnit = options.isMinify ? "" : " ";
 
         String temp = ",";
-        if (options.spaceAfterComma) {
+        if (options.commaStyle == FormatOptions.CommaStyle.SPACE_AFTER
+                || options.commaStyle == FormatOptions.CommaStyle.BOTH) {
             temp += " ";
         }
-        if (options.spaceBeforeComma) {
+        if (options.commaStyle == FormatOptions.CommaStyle.SPACE_BEFORE
+                || options.commaStyle == FormatOptions.CommaStyle.BOTH) {
             temp = " " + temp;
         }
         this.comma = temp;
@@ -147,9 +149,9 @@ public class SQLBuilder {
             return this;
         }
         key = key.trim();
-        if (options.upperCaseKeyWords) {
+        if (options.keyWordStyle == FormatOptions.KeyWordStyle.UPPER_CASE) {
             key = key.toUpperCase();
-        } else if (options.lowerCaseKeyWords) {
+        } else if (options.keyWordStyle == FormatOptions.KeyWordStyle.LOWER_CASE) {
             key = key.toLowerCase();
         }
         if (prefixSpace && !sql.isEmpty()) {

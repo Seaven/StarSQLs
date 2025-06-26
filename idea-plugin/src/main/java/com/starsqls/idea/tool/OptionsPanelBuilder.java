@@ -15,13 +15,14 @@ package com.starsqls.idea.tool;
 
 import com.intellij.ui.components.JBCheckBox;
 
-import java.awt.*;
-import java.util.LinkedHashMap;
+import java.awt.GridLayout;
+import java.util.HashMap;
 import java.util.Map;
-import javax.swing.*;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 
 public class OptionsPanelBuilder {
-    private final Map<String, JBCheckBox> optionBoxes = new LinkedHashMap<>();
+    private final Map<String, JComponent> options = new HashMap<>();
 
     private final JPanel optionsPanel;
 
@@ -37,8 +38,9 @@ public class OptionsPanelBuilder {
         this.colsMax = cols;
     }
 
-    public Map<String, JBCheckBox> getOptionBoxes() {
-        return optionBoxes;
+    public <T extends JComponent> T get(String key) {
+        JComponent component = options.get(key);
+        return (T) component;
     }
 
     public JPanel build() {
@@ -47,12 +49,18 @@ public class OptionsPanelBuilder {
 
     public OptionsPanelBuilder addOption(String key, String label, boolean selected) {
         JBCheckBox checkBox = new JBCheckBox(label, selected);
-        optionBoxes.put(key, checkBox);
+        options.put(key, checkBox);
         optionsPanel.add(checkBox);
         cols++;
         return this;
     }
 
+    public OptionsPanelBuilder add(String key, JComponent component) {
+        options.put(key, component);
+        optionsPanel.add(component);
+        cols++;
+        return this;
+    }
     public OptionsPanelBuilder add(JComponent component) {
         optionsPanel.add(component);
         cols++;
