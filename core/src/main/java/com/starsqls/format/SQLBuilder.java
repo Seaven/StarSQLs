@@ -80,7 +80,9 @@ public class SQLBuilder {
 
     public SQLBuilder append(String str) {
         sql.append(str);
-        breakMaxLength();
+        if (!StringUtils.isBlank(str)) {
+            breakMaxLength();
+        }
         return this;
     }
 
@@ -103,13 +105,16 @@ public class SQLBuilder {
     }
 
     private void breakMaxLength() {
-        if (options.isMinify || options.maxLineLength <= 0) {
+        if (options.isMinify || options.maxLineLength <= 0 || lastBreakPoint <= 0) {
             return;
         }
         int preLineIndex = Math.max(0, sql.lastIndexOf("\n"));
         int currentLineLength = sql.length() - preLineIndex;
-        if (currentLineLength > options.maxLineLength && lastBreakPoint > 0 && preLineIndex < lastBreakPoint) {
-            if (StringUtils.isBlank(sql.substring(preLineIndex, lastBreakPoint).trim())) {
+
+        if (currentLineLength > options.maxLineLength && preLineIndex < lastBreakPoint) {
+            String validContent = sql.substring(preLineIndex, lastBreakPoint).trim();
+            int saveLineLength = preLineIndex + options.maxLineLength - lastBreakPoint;
+            if (StringUtils.isBlank(validContent) || saveLineLength > validContent.length() * 3 / 2) {
                 return;
             }
             // If current line exceeds max length, break at the last break point

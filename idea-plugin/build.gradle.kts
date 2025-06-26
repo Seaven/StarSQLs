@@ -7,8 +7,9 @@ group = "com.starsqls"
 version = "1.0-SNAPSHOT"
 
 repositories {
-  mavenCentral()
   maven("https://maven.aliyun.com/repository/public/")
+  maven("https://maven.aliyun.com/nexus/content/groups/public/")
+  mavenCentral()
   intellijPlatform {
     defaultRepositories()
   }

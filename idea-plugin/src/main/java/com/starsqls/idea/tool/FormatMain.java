@@ -21,6 +21,7 @@ import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextArea;
 import com.intellij.ui.components.JBTextField;
+import com.intellij.ui.content.Content;
 import com.intellij.util.ui.FormBuilder;
 import com.starsqls.format.FormatOptions;
 import com.starsqls.format.FormatPrinter;
@@ -29,7 +30,6 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.FlowLayout;
 import java.util.List;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -37,11 +37,13 @@ public class FormatMain implements ToolWindowFactory {
 
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
-        toolWindow.setTitle("StarSQLs");
-        toolWindow.getComponent().add(createMainPanel(project));
+        JPanel mainPanel = createMainPanel(project);
+        toolWindow.getComponent().add(mainPanel);
+        Content content = toolWindow.getContentManager().getFactory().createContent(mainPanel, "Formatter", true);
+        toolWindow.getContentManager().addContent(content);
     }
 
-    private JComponent createMainPanel(Project project) {
+    private JPanel createMainPanel(Project project) {
         // SQL input/output area
         JBTextArea sqlArea = new JBTextArea(12, 80);
         sqlArea.setLineWrap(true);
@@ -60,21 +62,23 @@ public class FormatMain implements ToolWindowFactory {
         // Options area (checkbox)
         builder.row().add(new JLabel("Keyword: ")).add("keyword", new ComboBox<>(
                 new CollectionComboBoxModel<>(List.of(FormatOptions.KeyWordStyle.values()), options.keyWordStyle)));
-        builder.row().add(new JLabel("Comma: ")).add("comma",
-                new ComboBox<>(new CollectionComboBoxModel<>(List.of(FormatOptions.CommaStyle.values()),
-                        options.commaStyle)));
+        builder.row().add(new JLabel("Comma: ")).add("comma", new ComboBox<>(
+                new CollectionComboBoxModel<>(List.of(FormatOptions.CommaStyle.values()), options.commaStyle)));
         builder.row().add(new JLabel("Expressions: "));
         builder.row().add("breakFunctionArgs", new JBCheckBox("Break function args", options.breakFunctionArgs))
                 .add("breakFunctionArgs", new JBCheckBox("Break function args", options.breakFunctionArgs))
                 .add("alignFunctionArgs", new JBCheckBox("Align function args", options.alignFunctionArgs))
                 .add("breakCaseWhen", new JBCheckBox("Break case when", options.breakCaseWhen))
+                .add("alignCaseWhen", new JBCheckBox("Align case when", options.alignCaseWhen))
                 .add("breakInList", new JBCheckBox("Break in list", options.breakInList))
+                .add("alignInList", new JBCheckBox("Align in list", options.alignInList))
                 .add("breakAndOr", new JBCheckBox("Break and/or", options.breakAndOr));
         builder.row().add(new JLabel("Statements: "));
         builder.row().add("breakExplain", new JBCheckBox("Break explain", options.breakExplain))
                 .add("breakCTE", new JBCheckBox("Break CTE", options.breakCTE))
                 .add("breakJoinRelations", new JBCheckBox("Break join relations", options.breakJoinRelations))
                 .add("breakJoinOn", new JBCheckBox("Break join on", options.breakJoinOn))
+                .add("alignJoinOn", new JBCheckBox("Align join on", options.alignJoinOn))
                 .add("breakSelectItems", new JBCheckBox("Break select items", options.breakSelectItems))
                 .add("breakGroupByItems", new JBCheckBox("Break group by items", options.breakGroupByItems))
                 .add("breakOrderBy", new JBCheckBox("Break order by", options.breakOrderBy))
@@ -98,8 +102,12 @@ public class FormatMain implements ToolWindowFactory {
         btnPanel.add(formatBtn);
         btnPanel.add(minifyBtn);
 
-        return FormBuilder.createFormBuilder().addComponent(new JLabel("SQL Input/Output:")).addComponent(scrollPane)
-                .addComponent(builder.build()).addComponent(btnPanel).getPanel();
+        return FormBuilder.createFormBuilder()
+                .addComponent(new JLabel("SQL Input/Output:"))
+                .addComponent(scrollPane)
+                .addComponent(builder.build())
+                .addComponent(btnPanel)
+                .getPanel();
     }
 
     private FormatOptions collectOptions(OptionsPanelBuilder builder, boolean isMinify) {
@@ -109,16 +117,19 @@ public class FormatMain implements ToolWindowFactory {
             return opts;
         }
         opts.keyWordStyle = (FormatOptions.KeyWordStyle) builder.<ComboBox>get("keyword").getSelectedItem();
-        opts.commaStyle = (FormatOptions.CommaStyle) builder.<ComboBox>get("spaceBeforeComma").getSelectedItem();
+        opts.commaStyle = (FormatOptions.CommaStyle) builder.<ComboBox>get("comma").getSelectedItem(); // 修正key
         opts.breakFunctionArgs = builder.<JBCheckBox>get("breakFunctionArgs").isSelected();
         opts.alignFunctionArgs = builder.<JBCheckBox>get("alignFunctionArgs").isSelected();
         opts.breakCaseWhen = builder.<JBCheckBox>get("breakCaseWhen").isSelected();
+        opts.alignCaseWhen = builder.<JBCheckBox>get("alignCaseWhen").isSelected();
         opts.breakInList = builder.<JBCheckBox>get("breakInList").isSelected();
+        opts.alignInList = builder.<JBCheckBox>get("alignInList").isSelected();
         opts.breakAndOr = builder.<JBCheckBox>get("breakAndOr").isSelected();
         opts.breakExplain = builder.<JBCheckBox>get("breakExplain").isSelected();
         opts.breakCTE = builder.<JBCheckBox>get("breakCTE").isSelected();
         opts.breakJoinRelations = builder.<JBCheckBox>get("breakJoinRelations").isSelected();
         opts.breakJoinOn = builder.<JBCheckBox>get("breakJoinOn").isSelected();
+        opts.alignJoinOn = builder.<JBCheckBox>get("alignJoinOn").isSelected();
         opts.breakSelectItems = builder.<JBCheckBox>get("breakSelectItems").isSelected();
         opts.breakGroupByItems = builder.<JBCheckBox>get("breakGroupByItems").isSelected();
         opts.breakOrderBy = builder.<JBCheckBox>get("breakOrderBy").isSelected();
