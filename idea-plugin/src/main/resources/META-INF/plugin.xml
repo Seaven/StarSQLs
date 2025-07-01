@@ -8,13 +8,27 @@
     <name>Formatter</name>
 
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
-    <vendor url="https://www.yourcompany.com">YourCompany</vendor>
+    <vendor url="https://github.com/Seaven">Seaven</vendor>
 
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <description><![CDATA[
-    Enter short description for your plugin here.<br>
-    <em>most HTML tags may be used</em>
+    <h3>StarSQLs - StarRocks SQL Formatter</h3>
+    
+    <p>A comprehensive SQL formatting tool specifically designed for StarRocks SQL, providing intelligent and customizable formatting capabilities directly within IntelliJ IDEA.</p>
+    
+    <h4>✨ Key Features:</h4>
+    <ul>
+        <li><strong>Rich Configuration Options:</strong> Extensive customization for indentation, line length, keyword style, and more</li>
+        <li><strong>Advanced Clause Formatting:</strong> Specialized handling for CTE, JOIN, SELECT, GROUP BY, ORDER BY clauses</li>
+    </ul>
+    
+    <h4>🚀 Easy to Use:</h4>
+    <p>Simply open the StarSQLs tool window, paste your StarRocks SQL code, configure your formatting preferences, and click Format or Minify to get perfectly formatted SQL.</p>
+    
+    <p><em>Note: Currently optimized for StarRocks SQL syntax. Other SQL dialects may have limited compatibility.</em></p>
+    
+    <p><strong>Perfect for:</strong> Developers working with StarRocks databases who need consistent, readable SQL formatting.</p>
   ]]></description>
 
     <!-- Product and plugin compatibility requirements.
