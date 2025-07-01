@@ -39,6 +39,6 @@
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow id="StarSQLs" factoryClass="com.starsqls.idea.tool.FormatMain" anchor="right"
-                    icon="/META-INF/pluginIcon.svg"/>
+                    icon="/META-INF/icon.svg"/>
     </extensions>
 </idea-plugin>
