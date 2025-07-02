@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StarSQLs - SQL Formatter</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>StarSQLs</h1>
+            <p>Free SQL formatting tool based on StarRocks syntax</p>
+        </header>
+
+        <div class="main-content">
+            <div class="input-section">
+                <div class="section-header">
+                    <h3>Input SQL</h3>
+                    <div class="actions">
+                        <button id="formatBtn" class="btn btn-primary">Format</button>
+                        <button id="clearBtn" class="btn btn-secondary">Clear</button>
+                    </div>
+                </div>
+                <textarea id="inputSQL" placeholder="Enter your SQL statement here..."></textarea>
+            </div>
+
+            <div class="output-section">
+                <div class="section-header">
+                    <h3>Formatted Result</h3>
+                    <div class="actions">
+                        <button id="copyBtn" class="btn btn-secondary">Copy</button>
+                    </div>
+                </div>
+                <div id="outputSQL" class="output-area"></div>
+            </div>
+        </div>
+
+        <div class="options-panel">
+            <h3>Formatting Options</h3>
+            
+            <div class="option-group">
+                <label for="indent">Indent:</label>
+                <select id="indent">
+                    <option value="    ">4 spaces</option>
+                    <option value="  ">2 spaces</option>
+                    <option value="        ">8 spaces</option>
+                </select>
+            </div>
+
+            <div class="option-group">
+                <label for="maxLineLength">Max line length:</label>
+                <input type="number" id="maxLineLength" value="80" min="40" max="200">
+            </div>
+
+            <div class="option-group">
+                <label for="keywordStyle">Keyword style:</label>
+                <select id="keywordStyle">
+                    <option value="UPPER">Uppercase</option>
+                    <option value="LOWER">Lowercase</option>
+                    <option value="ORIGINAL">Original</option>
+                </select>
+            </div>
+
+            <div class="option-group">
+                <label for="commaStyle">Comma style:</label>
+                <select id="commaStyle">
+                    <option value="NONE">No space</option>
+                    <option value="AFTER">Space after</option>
+                    <option value="BEFORE">Space before</option>
+                    <option value="BOTH">Space both sides</option>
+                </select>
+            </div>
+
+            <div class="option-group">
+                <label>
+                    <input type="checkbox" id="breakCTE" checked>
+                    Break CTE
+                </label>
+            </div>
+
+            <div class="option-group">
+                <label>
+                    <input type="checkbox" id="breakOrderBy" checked>
+                    Break ORDER BY
+                </label>
+            </div>
+
+            <div class="option-group">
+                <label>
+                    <input type="checkbox" id="minify">
+                    Minify
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html> 
