@@ -23,12 +23,7 @@
         <li><strong>Advanced Clause Formatting:</strong> Specialized handling for CTE, JOIN, SELECT, GROUP BY, ORDER BY clauses</li>
     </ul>
     
-    <h4>🚀 Easy to Use:</h4>
-    <p>Simply open the StarSQLs tool window, paste your StarRocks SQL code, configure your formatting preferences, and click Format or Minify to get perfectly formatted SQL.</p>
-    
-    <p><em>Note: Currently optimized for StarRocks SQL syntax. Other SQL dialects may have limited compatibility.</em></p>
-    
-    <p><strong>Perfect for:</strong> Developers working with StarRocks databases who need consistent, readable SQL formatting.</p>
+    <p>If you have any issues, please submit them on <a href="https://github.com/Seaven/StarSQLs">GitHub</a>.</p>
   ]]></description>
 
     <!-- Product and plugin compatibility requirements.
