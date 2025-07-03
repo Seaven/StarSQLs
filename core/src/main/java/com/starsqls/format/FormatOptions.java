@@ -12,6 +12,7 @@
 
 package com.starsqls.format;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
 
@@ -62,7 +63,7 @@ public class FormatOptions {
     // ================================
     public boolean breakExplain = false;
 
-    public boolean breakCTE = true;
+    public boolean breakCTE = false;
 
     public boolean breakJoinRelations = false;
 

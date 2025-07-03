@@ -41,17 +41,12 @@ public class FormatController {
             FormatOptions formatOptions = request.getOptions();
             if (formatOptions == null) {
                 formatOptions = FormatOptions.defaultOptions();
+            } else if (formatOptions.isMinify) {
+                formatOptions = new FormatOptions();
             }
-
-            // Parse SQL using ANTLR
-            StarRocksLexer lexer = new StarRocksLexer(CharStreams.fromString(sql));
-            CommonTokenStream tokens = new CommonTokenStream(lexer);
-            StarRocksParser parser = new StarRocksParser(tokens);
-            ParseTree tree = parser.singleStatement();
-
             // Format SQL
             FormatPrinter printer = new FormatPrinter(formatOptions);
-            String formattedSQL = printer.format(tree);
+            String formattedSQL = printer.format(sql);
 
             return ResponseEntity.ok(new FormatResponse(true, formattedSQL, null));
 
@@ -59,6 +54,4 @@ public class FormatController {
             return ResponseEntity.badRequest().body(new FormatResponse(false, null, "Failed to format SQL: " + e.getMessage()));
         }
     }
-
-
-} 
+}
