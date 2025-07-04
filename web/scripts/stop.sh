@@ -7,8 +7,10 @@ set -e
 
 # Configuration
 APP_NAME="starsqls-web"
-APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PID_FILE="$APP_DIR/logs/$APP_NAME.pid"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+OUTPUT_DIR="$PROJECT_ROOT/output"
+PID_FILE="$OUTPUT_DIR/log/$APP_NAME.pid"
 
 # Colors for output
 RED='\033[0;31m'

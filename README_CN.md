@@ -1,7 +1,8 @@
 # StarSQLs - StarRocks SQL Formatter
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Java](https://img.shields.io/badge/Java-17-orange.svg)](https://openjdk.java.net/projects/jdk/21/)
+[![Java](https://img.shields.io/badge/Java-17-orange.svg)](https://openjdk.java.net/projects/jdk/17/)
+[![Version](https://img.shields.io/badge/Version-1.0-green.svg)](CHANGELOG.md)
 
 StarSQLs 是一个为 StarRocks SQL 开发的工具集合，目前提供 SQL 格式化功能。相比其他格式化工具，针对 SQL 各个子句支持更丰富的格式化选项，同时支持
 命令行， WEB端 和 IntelliJ IDEA 插件。

@@ -1,7 +1,8 @@
 # StarSQLs - StarRocks SQL Formatter
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Java](https://img.shields.io/badge/Java-17-orange.svg)](https://openjdk.java.net/projects/jdk/21/)
+[![Java](https://img.shields.io/badge/Java-17-orange.svg)](https://openjdk.java.net/projects/jdk/17/)
+[![Version](https://img.shields.io/badge/Version-1.0-green.svg)](CHANGELOG.md)
 
 StarSQLs is a comprehensive tool suite developed for StarRocks SQL, currently providing SQL formatting capabilities. Compared to other formatting tools, it offers richer formatting options for various SQL clauses, supporting command line, web interface, and IntelliJ IDEA plugin.
 

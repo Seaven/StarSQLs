@@ -7,14 +7,25 @@ set -e
 
 # Configuration
 APP_NAME="starsqls-web"
-APP_JAR="starsqls-web-1.0.jar"
-APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-JAR_PATH="$APP_DIR/target/$APP_JAR"
-PID_FILE="$APP_DIR/logs/$APP_NAME.pid"
-LOG_DIR="$APP_DIR/logs"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+OUTPUT_DIR="$PROJECT_ROOT/output"
+PID_FILE="$OUTPUT_DIR/log/$APP_NAME.pid"
+LOG_DIR="$OUTPUT_DIR/log"
 LOG_FILE="$LOG_DIR/$APP_NAME.log"
 JAVA_OPTS="-Xms512m -Xmx1024m -XX:+UseG1GC -XX:+UseStringDeduplication"
 SPRING_PROFILES="prod"
+
+# Function to get project version from pom.xml
+get_project_version() {
+    cd "$PROJECT_ROOT"
+    mvn help:evaluate -Dexpression=project.version -q -DforceStdout
+}
+
+# Get JAR file name dynamically
+PROJECT_VERSION=$(get_project_version)
+APP_JAR="starsqls-web-$PROJECT_VERSION.jar"
+JAR_PATH="$OUTPUT_DIR/lib/$APP_JAR"
 
 # Colors for output
 RED='\033[0;31m'

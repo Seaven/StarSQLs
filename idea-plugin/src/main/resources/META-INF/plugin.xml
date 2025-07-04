@@ -5,7 +5,10 @@
 
     <!-- Public plugin name should be written in Title Case.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
-    <name>Formatter</name>
+    <name>StarSQLs</name>
+
+    <!-- Plugin version -->
+    <version>1.0</version>
 
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
     <vendor url="https://github.com/Seaven">Seaven</vendor>
@@ -21,6 +24,8 @@
     <ul>
         <li><strong>Rich Configuration Options:</strong> Extensive customization for indentation, line length, keyword style, and more</li>
         <li><strong>Advanced Clause Formatting:</strong> Specialized handling for CTE, JOIN, SELECT, GROUP BY, ORDER BY clauses</li>
+        <li><strong>Multiple Output Formats:</strong> Support for both pretty print and minified output</li>
+        <li><strong>Real-time Formatting:</strong> Instant SQL formatting with customizable rules</li>
     </ul>
     
     <p>If you have any issues, please submit them on <a href="https://github.com/Seaven/StarSQLs">GitHub</a>.</p>
