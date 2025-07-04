@@ -16,9 +16,6 @@ import com.google.common.base.Strings;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.HashSet;
-import java.util.Set;
-
 public class SQLBuilder {
     private final FormatOptions options;
 
@@ -27,7 +24,6 @@ public class SQLBuilder {
     private final String prefixUnit;
 
     private final StringBuilder sql;
-    private final Set<String> keywords = HashSet.newHashSet(12);
     private int indentLevel = 0;
     private String linePrefix = "";
     private int lastBreakPoint = 0;
@@ -165,7 +161,6 @@ public class SQLBuilder {
                 append(" ");
             }
         }
-        keywords.add(key);
         append(key);
         if (suffixSpace) {
             append(" ");

@@ -15,7 +15,7 @@
     <properties>
         <maven.compiler.release>${java.version}</maven.compiler.release>
         <project.build.sourceEncoding>${file.encoding}</project.build.sourceEncoding>
-        <spring-boot.version>2.7.18</spring-boot.version>
+        <spring-boot.version>3.5.3</spring-boot.version>
     </properties>
 
     <dependencyManagement>

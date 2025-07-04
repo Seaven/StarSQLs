@@ -9,5 +9,5 @@ spring:
 
 logging:
   level:
-    com.starsqls: DEBUG
+    com.starsqls: INFO
     org.springframework.web: INFO 
