@@ -47,14 +47,6 @@ public class OptionsPanelBuilder {
         return optionsPanel;
     }
 
-    public OptionsPanelBuilder addOption(String key, String label, boolean selected) {
-        JBCheckBox checkBox = new JBCheckBox(label, selected);
-        options.put(key, checkBox);
-        optionsPanel.add(checkBox);
-        cols++;
-        return this;
-    }
-
     public OptionsPanelBuilder add(String key, JComponent component) {
         options.put(key, component);
         optionsPanel.add(component);

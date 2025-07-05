@@ -1,10 +1,10 @@
 plugins {
   id("java")
-  id("org.jetbrains.intellij.platform") version "2.5.0"
+  id("org.jetbrains.intellij.platform") version "2.6.0"
 }
 
 group = "com.starsqls"
-version = "1.0-SNAPSHOT"
+version = "1.0"
 
 repositories {
   maven("https://maven.aliyun.com/repository/public/")
@@ -34,10 +34,7 @@ intellijPlatform {
     ideaVersion {
       sinceBuild = "243"
     }
-
-    changeNotes = """
-      Initial version
-    """.trimIndent()
+    changeNotes = file("../CHANGELOG.md").readText()
   }
 }
 
@@ -46,5 +43,21 @@ tasks {
   withType<JavaCompile> {
     options.release = 17
     options.encoding = "UTF-8"
+  }
+  val createOpenApiSourceJar by registering(Jar::class) {
+     // Java sources
+     from(sourceSets.main.get().java) {
+       include("**/com/starsqls/idea/**/*.java")
+       include("../core/src/main/java/com/starsqls/**/*.java")
+     }
+     destinationDirectory.set(layout.buildDirectory.dir("libs"))
+     archiveClassifier.set("src")
+   }
+
+  buildPlugin {
+    dependsOn(createOpenApiSourceJar)
+    from(createOpenApiSourceJar) { into("lib/src") }
+    // Include CHANGELOG.md in the plugin package
+    from("../CHANGELOG.md") { into(".") }
   }
 }

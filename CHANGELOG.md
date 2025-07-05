@@ -23,13 +23,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - CTE, JOIN, SELECT, GROUP BY, ORDER BY clause formatting
   - Subquery formatting support
 
-### Technical Details
-- Built with Java 17
-- Uses ANTLR4 for SQL parsing
-- Spring Boot 2.7.18 for web interface
-- IntelliJ Platform 2024.3 compatibility
-- Maven and Gradle build support
-
 ### Supported Features
 - SQL syntax parsing and validation
 - Customizable formatting rules
