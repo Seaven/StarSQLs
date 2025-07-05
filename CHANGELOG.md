@@ -5,8 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0] - 2025-07-04
+## [Unreleased]
+### Added
 
+## [1.0]
 ### Added
 - Initial release of StarSQLs SQL formatter
 - Support for StarRocks SQL syntax formatting
@@ -22,10 +24,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Function and expression parameter formatting
   - CTE, JOIN, SELECT, GROUP BY, ORDER BY clause formatting
   - Subquery formatting support
-
-### Supported Features
-- SQL syntax parsing and validation
-- Customizable formatting rules
-- Multiple output formats (pretty print, minified)
-- Plugin integration with IntelliJ IDEA
-- RESTful API for web integration 
