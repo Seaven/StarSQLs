@@ -9,5 +9,7 @@
 target/
 gen/
 logs/
+output/
+output.*
 
 *dependency-reduced-pom.xml

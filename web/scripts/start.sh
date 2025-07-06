@@ -8,24 +8,14 @@ set -e
 # Configuration
 APP_NAME="starsqls-web"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-OUTPUT_DIR="$PROJECT_ROOT/output"
-PID_FILE="$OUTPUT_DIR/log/$APP_NAME.pid"
+OUTPUT_DIR="$SCRIPT_DIR/../"
+PID_FILE="$OUTPUT_DIR/$APP_NAME.pid"
 LOG_DIR="$OUTPUT_DIR/log"
 LOG_FILE="$LOG_DIR/$APP_NAME.log"
+JAR_PATH="$OUTPUT_DIR/lib/$APP_NAME.jar"
 JAVA_OPTS="-Xms512m -Xmx1024m -XX:+UseG1GC -XX:+UseStringDeduplication"
 SPRING_PROFILES="prod"
-
-# Function to get project version from pom.xml
-get_project_version() {
-    cd "$PROJECT_ROOT"
-    mvn help:evaluate -Dexpression=project.version -q -DforceStdout
-}
-
-# Get JAR file name dynamically
-PROJECT_VERSION=$(get_project_version)
-APP_JAR="starsqls-web-$PROJECT_VERSION.jar"
-JAR_PATH="$OUTPUT_DIR/lib/$APP_JAR"
+SERVER_PORT="8080"
 
 # Colors for output
 RED='\033[0;31m'
@@ -44,6 +34,36 @@ print_warning() {
 
 print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
+}
+
+# Function to find JAR file with version
+find_jar_file() {
+    local lib_dir="$OUTPUT_DIR/lib"
+    local jar_pattern="$APP_NAME-*.jar"
+    
+    if [ ! -d "$lib_dir" ]; then
+        print_error "Lib directory not found: $lib_dir"
+        return 1
+    fi
+    
+    # Find the most recent JAR file matching the pattern
+    local jar_file=$(find "$lib_dir" -name "$jar_pattern" -type f | sort -V | tail -n 1)
+    
+    if [ -z "$jar_file" ]; then
+        print_error "No JAR file found matching pattern: $jar_pattern"
+        print_error "Expected location: $lib_dir/$jar_pattern"
+        return 1
+    fi
+    
+    echo "$jar_file"
+}
+
+# Function to extract version from JAR filename
+extract_version() {
+    local jar_file="$1"
+    local filename=$(basename "$jar_file")
+    local version=$(echo "$filename" | sed "s/$APP_NAME-\(.*\)\.jar/\1/")
+    echo "$version"
 }
 
 # Function to check if Java is available
@@ -65,7 +85,8 @@ check_java() {
 # Function to create necessary directories
 create_directories() {
     mkdir -p "$LOG_DIR"
-    print_status "Created log directory: $LOG_DIR"
+    mkdir -p "$(dirname "$PID_FILE")"
+    print_status "Created directories: $LOG_DIR, $(dirname "$PID_FILE")"
 }
 
 # Function to check if application is already running
@@ -87,17 +108,21 @@ check_running() {
 start_application() {
     print_status "Starting $APP_NAME..."
     
-    # Check if JAR file exists
-    if [ ! -f "$JAR_PATH" ]; then
-        print_error "JAR file not found: $JAR_PATH"
-        print_error "Please build the project first: mvn clean package"
+    # Find JAR file with version
+    JAR_PATH=$(find_jar_file)
+    if [ $? -ne 0 ]; then
         exit 1
     fi
+    
+    # Extract version from JAR filename
+    VERSION=$(extract_version "$JAR_PATH")
+    
+    print_status "Found JAR file: $JAR_PATH (Version: $VERSION)"
     
     # Start the application
     nohup java $JAVA_OPTS \
         -Dspring.profiles.active=$SPRING_PROFILES \
-        -Dserver.port=8080 \
+        -Dserver.port=$SERVER_PORT \
         -jar "$JAR_PATH" \
         > "$LOG_FILE" 2>&1 &
     
@@ -111,12 +136,26 @@ start_application() {
     if ps -p $(cat "$PID_FILE") > /dev/null 2>&1; then
         print_status "Application started successfully with PID: $(cat "$PID_FILE")"
         print_status "Log file: $LOG_FILE"
-        print_status "Application URL: http://localhost:8080"
+        print_status "Application URL: http://localhost:$SERVER_PORT"
     else
         print_error "Failed to start application. Check logs: $LOG_FILE"
         rm -f "$PID_FILE"
         exit 1
     fi
+}
+
+# Function to print configuration
+print_configuration() {
+    print_status "Configuration:"
+    print_status "  Output Directory: $OUTPUT_DIR"
+    print_status "  PID File: $PID_FILE"
+    print_status "  Log Directory: $LOG_DIR"
+    print_status "  Log File: $LOG_FILE"
+    print_status "  JAR Path: $JAR_PATH"
+    print_status "  Java Options: $JAVA_OPTS"
+    print_status "  Spring Profiles: $SPRING_PROFILES"
+    print_status "  Server Port: $SERVER_PORT"
+    echo
 }
 
 # Main execution

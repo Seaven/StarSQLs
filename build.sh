@@ -106,9 +106,9 @@ copy_artifacts() {
         print_warning "$CORE_JAR not found in core/target/"
     fi
     
-    # Copy dependencies to lib directory
-    print_status "Copying dependencies to lib directory..."
-    mvn dependency:copy-dependencies -DoutputDirectory="$LIB_DIR" -DincludeScope=runtime
+    # Note: No need to copy dependencies for web module since it's a Spring Boot fat jar
+    # The web JAR already contains all necessary dependencies
+    print_status "Skipping dependency copy for web module (fat jar contains all dependencies)"
     
     print_status "Artifacts copied successfully!"
 }

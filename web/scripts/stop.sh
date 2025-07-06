@@ -8,9 +8,8 @@ set -e
 # Configuration
 APP_NAME="starsqls-web"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-OUTPUT_DIR="$PROJECT_ROOT/output"
-PID_FILE="$OUTPUT_DIR/log/$APP_NAME.pid"
+OUTPUT_DIR="$SCRIPT_DIR/../"
+PID_FILE="$OUTPUT_DIR/$APP_NAME.pid"
 
 # Colors for output
 RED='\033[0;31m'
@@ -34,7 +33,8 @@ print_error() {
 # Function to stop the application
 stop_application() {
     if [ ! -f "$PID_FILE" ]; then
-        print_warning "PID file not found. Application may not be running."
+        print_warning "PID file not found at: $PID_FILE"
+        print_warning "Application may not be running."
         return 0
     fi
     
@@ -87,10 +87,20 @@ check_running() {
     return 1
 }
 
+# Function to print configuration
+print_configuration() {
+    print_status "Configuration:"
+    print_status "  Output Directory: $OUTPUT_DIR"
+    print_status "  PID File: $PID_FILE"
+    echo
+}
+
 # Main execution
 main() {
     print_status "StarSQLs Web Service Stop Script"
     print_status "=================================="
+    
+    print_configuration
     
     if ! check_running; then
         print_warning "Application is not running"
