@@ -49,7 +49,10 @@ stop_application() {
     print_status "Stopping $APP_NAME (PID: $PID)..."
     
     # Try graceful shutdown first
-    kill "$PID"
+    if ! kill "$PID"; then
+        print_error "Failed to send TERM signal to process $PID"
+        return 1
+    fi
     
     # Wait for graceful shutdown (up to 30 seconds)
     for i in {1..30}; do
@@ -63,16 +66,20 @@ stop_application() {
     
     # Force kill if graceful shutdown failed
     print_warning "Graceful shutdown failed. Force killing process..."
-    kill -9 "$PID"
+    if ! kill -9 "$PID"; then
+        print_error "Failed to send KILL signal to process $PID"
+        return 1
+    fi
     
     # Wait a moment and check
     sleep 2
     if ! ps -p "$PID" > /dev/null 2>&1; then
         print_status "Application force stopped"
         rm -f "$PID_FILE"
+        return 0
     else
-        print_error "Failed to stop application"
-        exit 1
+        print_error "Failed to stop application - process still running after force kill"
+        return 1
     fi
 }
 
@@ -107,9 +114,13 @@ main() {
         exit 0
     fi
     
-    stop_application
+    if ! stop_application; then
+        print_error "Failed to stop application"
+        exit 1
+    fi
     
-    print_status "Stop operation completed!"
+    print_status "Stop operation completed successfully!"
+    exit 0
 }
 
 # Run main function
