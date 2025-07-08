@@ -106,6 +106,14 @@ class SQLFormatter {
                 this.formatSQL();
             }
         });
+        
+        // Handle window resize for responsive layout
+        window.addEventListener('resize', () => {
+            if (this.editor) {
+                this.editor.layout();
+            }
+        });
+        
         // Save settings on change
         this.bindOptionElements();
     }
@@ -262,10 +270,10 @@ class SQLFormatter {
         this.minifyBtn.disabled = loading;
         this.minifyBtn.textContent = loading ? 'Minifying...' : 'Minify';
         
-        if (loading) {
-            document.body.classList.add('loading');
-        } else {
-            document.body.classList.remove('loading');
+        // Remove body loading class to avoid page flicker
+        // Only change button states, keep editor fully interactive
+        if (this.editor) {
+            this.editor.updateOptions({ readOnly: false });
         }
     }
 
