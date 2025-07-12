@@ -27,8 +27,11 @@ import com.starsqls.format.FormatOptions;
 import com.starsqls.format.FormatPrinter;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.awt.Insets;
 import java.util.List;
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -48,14 +51,17 @@ public class FormatMain implements ToolWindowFactory {
         JBTextArea sqlArea = new JBTextArea(12, 80);
         sqlArea.setLineWrap(true);
         JBScrollPane scrollPane = new JBScrollPane(sqlArea);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(5, 0, 10, 0)); // Add top and bottom margin
 
         FormatOptions options = FormatOptions.defaultOptions();
 
         // Build UI
         OptionsPanelBuilder builder = new OptionsPanelBuilder(0, 3);
 
-        // Common parameters
-        builder.row().add(new JLabel("Indent:")).add("indent", new JBTextField(options.indent));
+        // Common parameters - Improved indent configuration
+        builder.row().add(new JLabel("Indent Character:")).add("indentChar", new ComboBox<>(
+                new CollectionComboBoxModel<>(List.of("Space", "Tab"), "Space")));
+        builder.row().add(new JLabel("Indent Size:")).add("indentSize", new JBTextField("4"));
         builder.row().add(new JLabel("Max Line Length:"))
                 .add("lineLength", new JBTextField(String.valueOf(options.maxLineLength)));
 
@@ -98,16 +104,29 @@ public class FormatMain implements ToolWindowFactory {
             formatSql(sqlArea, opts);
         });
 
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5)); // Add 10px horizontal gap, 5px vertical gap
+        btnPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0)); // Add top and bottom margin
         btnPanel.add(formatBtn);
         btnPanel.add(minifyBtn);
 
-        return FormBuilder.createFormBuilder()
+        // Create main panel with proper margins
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Add 10px margin on all sides
+        
+        // Create content panel with FormBuilder
+        JPanel contentPanel = FormBuilder.createFormBuilder()
                 .addComponent(new JLabel("SQL Input/Output:"))
                 .addComponent(scrollPane)
                 .addComponent(builder.build())
                 .addComponent(btnPanel)
                 .getPanel();
+        
+        // Add margins to the content panel
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        
+        mainPanel.add(contentPanel, BorderLayout.CENTER);
+        
+        return mainPanel;
     }
 
     private FormatOptions collectOptions(OptionsPanelBuilder builder, boolean isMinify) {
@@ -117,7 +136,7 @@ public class FormatMain implements ToolWindowFactory {
             return opts;
         }
         opts.keyWordStyle = (FormatOptions.KeyWordStyle) builder.<ComboBox>get("keyword").getSelectedItem();
-        opts.commaStyle = (FormatOptions.CommaStyle) builder.<ComboBox>get("comma").getSelectedItem(); // 修正key
+        opts.commaStyle = (FormatOptions.CommaStyle) builder.<ComboBox>get("comma").getSelectedItem();
         opts.breakFunctionArgs = builder.<JBCheckBox>get("breakFunctionArgs").isSelected();
         opts.alignFunctionArgs = builder.<JBCheckBox>get("alignFunctionArgs").isSelected();
         opts.breakCaseWhen = builder.<JBCheckBox>get("breakCaseWhen").isSelected();
@@ -134,7 +153,27 @@ public class FormatMain implements ToolWindowFactory {
         opts.breakGroupByItems = builder.<JBCheckBox>get("breakGroupByItems").isSelected();
         opts.breakOrderBy = builder.<JBCheckBox>get("breakOrderBy").isSelected();
         opts.formatSubquery = builder.<JBCheckBox>get("formatSubquery").isSelected();
-        opts.indent = builder.<JBTextField>get("indent").getText();
+        
+        // Calculate indent based on character and size selection
+        String indentChar = (String) builder.<ComboBox>get("indentChar").getSelectedItem();
+        String indentSizeText = builder.<JBTextField>get("indentSize").getText();
+        int indentSize;
+        try {
+            indentSize = Integer.parseInt(indentSizeText);
+            if (indentSize < 1 || indentSize > 8) {
+                indentSize = 4; // Default to 4 if out of range
+            }
+        } catch (Exception e) {
+            indentSize = 4; // Default to 4 if invalid
+        }
+        
+        // Generate indent string based on character and size
+        if ("Tab".equals(indentChar)) {
+            opts.indent = "\t".repeat(indentSize);
+        } else {
+            opts.indent = " ".repeat(indentSize);
+        }
+        
         String maxLineLengthText = builder.<JBTextField>get("lineLength").getText();
         try {
             opts.maxLineLength = Integer.parseInt(maxLineLengthText);

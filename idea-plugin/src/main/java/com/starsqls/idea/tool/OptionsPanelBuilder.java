@@ -13,11 +13,10 @@
 
 package com.starsqls.idea.tool;
 
-import com.intellij.ui.components.JBCheckBox;
-
 import java.awt.GridLayout;
 import java.util.HashMap;
 import java.util.Map;
+import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
@@ -35,6 +34,7 @@ public class OptionsPanelBuilder {
     public OptionsPanelBuilder(int rows, int cols) {
         optionsPanel = new JPanel();
         optionsPanel.setLayout(new GridLayout(rows, cols));
+        optionsPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5)); // Add 5px margin
         this.colsMax = cols;
     }
 
