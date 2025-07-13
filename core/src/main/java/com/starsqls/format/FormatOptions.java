@@ -12,7 +12,6 @@
 
 package com.starsqls.format;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
 
@@ -20,7 +19,10 @@ public class FormatOptions {
     // ================================
     // mode
     // ================================
-    public boolean isMinify = true;
+    public enum Mode {
+        FORMAT, MINIFY, NORMALIZE
+    }
+    public Mode mode = Mode.MINIFY;
 
     // ================================
     // common keywords
@@ -81,7 +83,7 @@ public class FormatOptions {
 
     public static FormatOptions allFormatOptions() {
         FormatOptions options = new FormatOptions();
-        options.isMinify = false;
+        options.mode = Mode.FORMAT;
         options.indent = "    ";
         options.commaStyle = CommaStyle.BOTH;
         options.maxLineLength = 120;
@@ -109,7 +111,7 @@ public class FormatOptions {
 
     public static FormatOptions defaultOptions() {
         FormatOptions options = new FormatOptions();
-        options.isMinify = false;
+        options.mode = Mode.FORMAT;
         options.indent = Strings.repeat(" ", 4);
         options.commaStyle = CommaStyle.SPACE_AFTER;
         options.maxLineLength = 120;

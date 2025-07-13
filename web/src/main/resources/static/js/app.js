@@ -160,7 +160,7 @@ class SQLFormatter {
         try {
             const options = this.getFormatOptions();
             if (action === 'minify') {
-                options.isMinify = true; // Force minify mode
+                options.mode = 'MINIFY'; // Force minify mode
             }
             
             const response = await fetch(SQLFormatter.API_ENDPOINT, {
@@ -198,7 +198,7 @@ class SQLFormatter {
         const indent = indentChar === '\\t' ? '\t'.repeat(indentCount) : ' '.repeat(indentCount);
         
         return {
-            isMinify: false, // Always false for format, true only for minify
+            mode: 'FORMAT', // Always FORMAT for format, MINIFY for minify
             indent: indent,
             maxLineLength: parseInt(this.maxLineLength.value),
             keyWordStyle: this.keyWordStyle.value,

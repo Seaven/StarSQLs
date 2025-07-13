@@ -41,7 +41,7 @@ public class FormatController {
             FormatOptions formatOptions = request.getOptions();
             if (formatOptions == null) {
                 formatOptions = FormatOptions.defaultOptions();
-            } else if (formatOptions.isMinify) {
+            } else if (formatOptions.mode == FormatOptions.Mode.MINIFY) {
                 formatOptions = new FormatOptions();
             }
             // Format SQL

@@ -723,7 +723,7 @@ public class FormatPrinter extends FormatPrinterBase {
     @Override
     public Void visitArithmeticBinary(StarRocksParser.ArithmeticBinaryContext ctx) {
         visit(ctx.left);
-        if (options.isMinify) {
+        if (options.mode == FormatOptions.Mode.MINIFY) {
             sql.append(ctx.operator.getText());
         } else {
             sql.appendKey(ctx.operator.getText());

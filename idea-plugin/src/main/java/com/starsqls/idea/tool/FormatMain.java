@@ -154,8 +154,8 @@ public class FormatMain implements ToolWindowFactory {
 
     private FormatOptions collectOptions(OptionsPanelBuilder builder, boolean isMinify) {
         FormatOptions opts = new FormatOptions();
-        opts.isMinify = isMinify;
-        if (opts.isMinify) {
+        opts.mode = isMinify ? FormatOptions.Mode.MINIFY : FormatOptions.Mode.FORMAT;
+        if (opts.mode == FormatOptions.Mode.MINIFY) {
             return opts;
         }
         opts.keyWordStyle = (FormatOptions.KeyWordStyle) builder.<ComboBox>get("keyword").getSelectedItem();

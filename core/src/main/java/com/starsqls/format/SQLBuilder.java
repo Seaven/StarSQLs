@@ -31,7 +31,7 @@ public class SQLBuilder {
     public SQLBuilder(FormatOptions options) {
         this.options = options;
         this.sql = new StringBuilder();
-        this.prefixUnit = options.isMinify ? "" : " ";
+        this.prefixUnit = options.mode == FormatOptions.Mode.MINIFY ? "" : " ";
 
         String temp = ",";
         if (options.commaStyle == FormatOptions.CommaStyle.SPACE_AFTER
@@ -43,7 +43,7 @@ public class SQLBuilder {
             temp = " " + temp;
         }
         this.comma = temp;
-        this.newLine = options.isMinify ? "" : "\n";
+        this.newLine = options.mode == FormatOptions.Mode.MINIFY ? "" : "\n";
     }
 
     public void intoLevel(Runnable func) {
@@ -101,7 +101,7 @@ public class SQLBuilder {
     }
 
     private void breakMaxLength() {
-        if (options.isMinify || options.maxLineLength <= 0 || lastBreakPoint <= 0) {
+        if (options.mode == FormatOptions.Mode.MINIFY || options.maxLineLength <= 0 || lastBreakPoint <= 0) {
             return;
         }
         int preLineIndex = Math.max(0, sql.lastIndexOf("\n"));
