@@ -1,0 +1,10 @@
+User-agent: *
+Crawl-delay: 3600
+Allow: /
+Allow: /index.html
+Allow: /css/
+Allow: /js/
+Disallow: /api/
+Disallow: /error/
+Disallow: /admin/
+Disallow: /internal/ 
