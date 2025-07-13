@@ -35,6 +35,8 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
+import java.awt.Color;
 
 public class FormatMain implements ToolWindowFactory {
 
@@ -52,6 +54,26 @@ public class FormatMain implements ToolWindowFactory {
         sqlArea.setLineWrap(true);
         JBScrollPane scrollPane = new JBScrollPane(sqlArea);
         scrollPane.setBorder(BorderFactory.createEmptyBorder(5, 0, 10, 0)); // Add top and bottom margin
+
+        // Error message area
+        JTextArea errorArea = new JTextArea();
+        errorArea.setEditable(false);
+        errorArea.setLineWrap(true);
+        errorArea.setWrapStyleWord(true);
+        errorArea.setForeground(new Color(220, 53, 69)); // Bootstrap danger red - visible in both light and dark themes
+        errorArea.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createTitledBorder("Error Messages"),
+            BorderFactory.createEmptyBorder(2, 5, 2, 5)
+        ));
+        JBScrollPane errorScrollPane = new JBScrollPane(errorArea);
+        errorScrollPane.setVisible(false); // Initially hidden
+        // Set preferred size to limit height
+        errorScrollPane.setPreferredSize(new java.awt.Dimension(0, 40)); // 40px height
+        errorScrollPane.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 40)); // Force max height
+        errorScrollPane.setMinimumSize(new java.awt.Dimension(0, 40)); // Force min height
+        // Set scroll policy to prevent vertical expansion
+        errorScrollPane.setVerticalScrollBarPolicy(JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        errorScrollPane.setHorizontalScrollBarPolicy(JBScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
         FormatOptions options = FormatOptions.defaultOptions();
 
@@ -97,11 +119,11 @@ public class FormatMain implements ToolWindowFactory {
         // Button events
         formatBtn.addActionListener(e -> {
             FormatOptions opts = collectOptions(builder, false);
-            formatSql(sqlArea, opts);
+            formatSql(sqlArea, errorArea, errorScrollPane, opts);
         });
         minifyBtn.addActionListener(e -> {
             FormatOptions opts = collectOptions(builder, true);
-            formatSql(sqlArea, opts);
+            formatSql(sqlArea, errorArea, errorScrollPane, opts);
         });
 
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5)); // Add 10px horizontal gap, 5px vertical gap
@@ -117,6 +139,7 @@ public class FormatMain implements ToolWindowFactory {
         JPanel contentPanel = FormBuilder.createFormBuilder()
                 .addComponent(new JLabel("SQL Input/Output:"))
                 .addComponent(scrollPane)
+                .addComponent(errorScrollPane)
                 .addComponent(builder.build())
                 .addComponent(btnPanel)
                 .getPanel();
@@ -183,14 +206,26 @@ public class FormatMain implements ToolWindowFactory {
         return opts;
     }
 
-    private void formatSql(JBTextArea sqlArea, FormatOptions opts) {
+    private void formatSql(JBTextArea sqlArea, JTextArea errorArea, JBScrollPane errorScrollPane, FormatOptions opts) {
         String sql = sqlArea.getText();
         try {
             FormatPrinter printer = new FormatPrinter(opts);
             String result = printer.format(sql);
             sqlArea.setText(result);
+            // Hide error area on success and revalidate layout
+            errorScrollPane.setVisible(false);
+            errorArea.setText("");
+            // Force layout update to properly hide the error area
+            errorScrollPane.getParent().revalidate();
+            errorScrollPane.getParent().repaint();
         } catch (Exception ex) {
-            sqlArea.setText("Format failed: " + ex.getMessage());
+            // Show error in separate area without clearing SQL
+            String errorMsg = ex.getMessage();
+            errorArea.setText("Format failed: " + errorMsg);
+            errorScrollPane.setVisible(true);
+            // Ensure error area is visible by revalidating the container
+            errorScrollPane.getParent().revalidate();
+            errorScrollPane.getParent().repaint();
         }
     }
 }
