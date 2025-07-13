@@ -92,6 +92,9 @@ public class FormatPrinter extends FormatPrinterBase {
         sql.appendKey(ctx.WITH());
         sql.appendBreak(options.breakCTE);
         visitList(ctx.commonTableExpression(), commaBreak(options.breakCTE));
+        if (!options.breakCTE) {
+            sql.append(" ");
+        }
         sql.appendNewLine();
         return null;
     }
