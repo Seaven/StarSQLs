@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class FormatPrinterBase extends StarRocksBaseVisitor<Void> {
+public class FormatPrinterBase extends StarRocksBaseVisitor<Void> implements Printer {
     protected FormatOptions options;
 
     protected SQLBuilder sql;
@@ -126,6 +126,7 @@ public class FormatPrinterBase extends StarRocksBaseVisitor<Void> {
         return sb.toString();
     }
 
+    @Override
     public String format(String sql) {
         StarRocksParser.SqlStatementsContext context = parse(sql);
         context.accept(this);
