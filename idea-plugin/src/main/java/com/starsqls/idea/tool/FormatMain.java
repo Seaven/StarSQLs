@@ -17,6 +17,7 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.CollectionComboBoxModel;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextArea;
@@ -25,11 +26,11 @@ import com.intellij.ui.content.Content;
 import com.intellij.util.ui.FormBuilder;
 import com.starsqls.format.FormatOptions;
 import com.starsqls.format.FormatPrinter;
+import com.starsqls.format.Printer;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
-import java.awt.Insets;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -60,20 +61,13 @@ public class FormatMain implements ToolWindowFactory {
         errorArea.setEditable(false);
         errorArea.setLineWrap(true);
         errorArea.setWrapStyleWord(true);
-        errorArea.setForeground(new Color(220, 53, 69)); // Bootstrap danger red - visible in both light and dark themes
+        // Bootstrap danger red - visible in both light and dark themes
+        errorArea.setForeground(new JBColor(new Color(220, 53, 69), new Color(220, 53, 69)));
         errorArea.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createTitledBorder("Error Messages"),
             BorderFactory.createEmptyBorder(2, 5, 2, 5)
         ));
-        JBScrollPane errorScrollPane = new JBScrollPane(errorArea);
-        errorScrollPane.setVisible(false); // Initially hidden
-        // Set preferred size to limit height
-        errorScrollPane.setPreferredSize(new java.awt.Dimension(0, 40)); // 40px height
-        errorScrollPane.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 40)); // Force max height
-        errorScrollPane.setMinimumSize(new java.awt.Dimension(0, 40)); // Force min height
-        // Set scroll policy to prevent vertical expansion
-        errorScrollPane.setVerticalScrollBarPolicy(JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        errorScrollPane.setHorizontalScrollBarPolicy(JBScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        JBScrollPane errorScrollPane = createErrorPane(errorArea);
 
         FormatOptions options = FormatOptions.defaultOptions();
 
@@ -113,6 +107,7 @@ public class FormatMain implements ToolWindowFactory {
                 .add("formatSubquery", new JBCheckBox("Format subquery", options.formatSubquery));
 
         // Buttons
+        JButton unescapeBtn = new JButton("Unescape");
         JButton formatBtn = new JButton("Format");
         JButton minifyBtn = new JButton("Minify");
 
@@ -125,9 +120,14 @@ public class FormatMain implements ToolWindowFactory {
             FormatOptions opts = collectOptions(builder, true);
             formatSql(sqlArea, errorArea, errorScrollPane, opts);
         });
+        unescapeBtn.addActionListener(e -> {
+            FormatOptions opts = collectOptions(builder, false, true);
+            formatSql(sqlArea, errorArea, errorScrollPane, opts);
+        });
 
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5)); // Add 10px horizontal gap, 5px vertical gap
         btnPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0)); // Add top and bottom margin
+        btnPanel.add(unescapeBtn);
         btnPanel.add(formatBtn);
         btnPanel.add(minifyBtn);
 
@@ -152,11 +152,33 @@ public class FormatMain implements ToolWindowFactory {
         return mainPanel;
     }
 
+    private static @NotNull JBScrollPane createErrorPane(JTextArea errorArea) {
+        JBScrollPane errorScrollPane = new JBScrollPane(errorArea);
+        errorScrollPane.setVisible(false); // Initially hidden
+        // Set preferred size to limit height
+        errorScrollPane.setPreferredSize(new java.awt.Dimension(0, 40)); // 40px height
+        errorScrollPane.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 40)); // Force max height
+        errorScrollPane.setMinimumSize(new java.awt.Dimension(0, 40)); // Force min height
+        // Set scroll policy to prevent vertical expansion
+        errorScrollPane.setVerticalScrollBarPolicy(JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        errorScrollPane.setHorizontalScrollBarPolicy(JBScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        return errorScrollPane;
+    }
+
     private FormatOptions collectOptions(OptionsPanelBuilder builder, boolean isMinify) {
+        return collectOptions(builder, isMinify, false);
+    }
+
+    private FormatOptions collectOptions(OptionsPanelBuilder builder, boolean isMinify, boolean isNormalize) {
         FormatOptions opts = new FormatOptions();
-        opts.mode = isMinify ? FormatOptions.Mode.MINIFY : FormatOptions.Mode.FORMAT;
-        if (opts.mode == FormatOptions.Mode.MINIFY) {
+        if (isNormalize) {
+            opts.mode = FormatOptions.Mode.NORMALIZE;
             return opts;
+        } else if (isMinify) {
+            opts.mode = FormatOptions.Mode.MINIFY;
+            return opts;
+        } else {
+            opts.mode = FormatOptions.Mode.FORMAT;
         }
         opts.keyWordStyle = (FormatOptions.KeyWordStyle) builder.<ComboBox>get("keyword").getSelectedItem();
         opts.commaStyle = (FormatOptions.CommaStyle) builder.<ComboBox>get("comma").getSelectedItem();
@@ -209,7 +231,7 @@ public class FormatMain implements ToolWindowFactory {
     private void formatSql(JBTextArea sqlArea, JTextArea errorArea, JBScrollPane errorScrollPane, FormatOptions opts) {
         String sql = sqlArea.getText();
         try {
-            FormatPrinter printer = new FormatPrinter(opts);
+            Printer printer = Printer.create(opts);
             String result = printer.format(sql);
             sqlArea.setText(result);
             // Hide error area on success and revalidate layout
