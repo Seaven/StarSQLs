@@ -2,6 +2,7 @@ class SQLFormatter {
     // Constants
     static API_ENDPOINT = '/api/format';
     static SETTINGS_KEY = 'sqlFormatterSettings';
+    static CONTENT_KEY = 'sqlFormatterContent';
     static MONACO_CDN_URL = 'https://unpkg.com/monaco-editor@0.45.0/min/vs';
     
     constructor() {
@@ -19,7 +20,7 @@ class SQLFormatter {
             require.config({ paths: { vs: SQLFormatter.MONACO_CDN_URL } });
             require(['vs/editor/editor.main'], () => {
                 const editorConfig = {
-                    value: '',
+                    value: this.loadEditorContent(),
                     language: 'sql',
                     theme: 'vs',
                     fontSize: 14,
@@ -47,6 +48,11 @@ class SQLFormatter {
                 
                 this.editor = monaco.editor.create(document.getElementById('monaco-editor'), editorConfig);
                 
+                // Add content change listener to auto-save
+                this.editor.onDidChangeModelContent(() => {
+                    this.saveEditorContent();
+                });
+                
                 // Ensure scrollbar position is at the left
                 this.resetScrollPosition();
                 
@@ -58,6 +64,7 @@ class SQLFormatter {
     initElements() {
         this.formatBtn = document.getElementById('formatBtn');
         this.minifyBtn = document.getElementById('minifyBtn');
+        this.unescapeBtn = document.getElementById('unescapeBtn');
         this.clearBtn = document.getElementById('clearBtn');
         this.copyBtn = document.getElementById('copyBtn');
         this.wordWrapToggle = document.getElementById('wordWrapToggle');
@@ -88,6 +95,7 @@ class SQLFormatter {
     bindEvents() {
         this.formatBtn.addEventListener('click', () => this.formatSQL());
         this.minifyBtn.addEventListener('click', () => this.minifySQL());
+        this.unescapeBtn.addEventListener('click', () => this.unescapeSQL());
         this.clearBtn.addEventListener('click', () => this.clearAll());
         this.copyBtn.addEventListener('click', () => this.copyResult());
         
@@ -148,7 +156,11 @@ class SQLFormatter {
         await this.processSQL('minify', 'Minification');
     }
 
-    // Generic method to process SQL (format or minify)
+    async unescapeSQL() {
+        await this.processSQL('normalize', 'Unescaping');
+    }
+
+    // Generic method to process SQL (format, minify, or normalize)
     async processSQL(action, actionName) {
         const sql = this.editor.getValue().trim();
         if (!sql) {
@@ -161,6 +173,8 @@ class SQLFormatter {
             const options = this.getFormatOptions();
             if (action === 'minify') {
                 options.mode = 'MINIFY'; // Force minify mode
+            } else if (action === 'normalize') {
+                options.mode = 'NORMALIZE'; // Force normalize mode
             }
             
             const response = await fetch(SQLFormatter.API_ENDPOINT, {
@@ -224,6 +238,8 @@ class SQLFormatter {
 
     clearAll() {
         this.editor.setValue('');
+        // Clear saved content
+        localStorage.removeItem(SQLFormatter.CONTENT_KEY);
         // Ensure scrollbar position is at the left
         this.resetScrollPosition();
         this.showMessage('Cleared', 'success');
@@ -392,6 +408,18 @@ class SQLFormatter {
                 wordWrap: this.wordWrapToggle.checked ? 'on' : 'off'
             });
         }
+    }
+
+    saveEditorContent() {
+        if (this.editor) {
+            const content = this.editor.getValue();
+            localStorage.setItem(SQLFormatter.CONTENT_KEY, content);
+        }
+    }
+
+    loadEditorContent() {
+        const savedContent = localStorage.getItem(SQLFormatter.CONTENT_KEY);
+        return savedContent || '';
     }
 }
 

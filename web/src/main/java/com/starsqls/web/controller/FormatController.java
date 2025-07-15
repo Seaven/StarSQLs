@@ -14,6 +14,7 @@ package com.starsqls.web.controller;
 
 import com.starsqls.format.FormatOptions;
 import com.starsqls.format.FormatPrinter;
+import com.starsqls.format.Printer;
 import com.starsqls.parser.StarRocksLexer;
 import com.starsqls.parser.StarRocksParser;
 import com.starsqls.web.dto.FormatRequest;
@@ -45,7 +46,7 @@ public class FormatController {
                 formatOptions = new FormatOptions();
             }
             // Format SQL
-            FormatPrinter printer = new FormatPrinter(formatOptions);
+            Printer printer = Printer.create(formatOptions);
             String formattedSQL = printer.format(sql);
 
             return ResponseEntity.ok(new FormatResponse(true, formattedSQL, null));
