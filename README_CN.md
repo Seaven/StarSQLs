@@ -19,6 +19,7 @@ StarSQLs 是一个为 StarRocks SQL 开发的工具集合，目前提供 SQL 格
   - 逗号位置样式
   - 函数、表达式参数换行和对齐
   - CTE、JOIN、SELECT 等子句格式化
+- **Unescape 功能**: 转换 SQL 字符串中的转义序列和 HTML 实体
 - **IntelliJ IDEA 插件**
 
 ## 🚀 快速开始
@@ -31,11 +32,16 @@ StarSQLs 是一个为 StarRocks SQL 开发的工具集合，目前提供 SQL 格
 
 ### IDEA 插件使用
 
-1. 构建插件后，在 IDEA 中安装插件
-2. 打开工具窗口 (View → Tool Windows → StarSQLs)
-3. 在文本区域输入 SQL 代码
-4. 配置格式化选项
-5. 点击 "Format" 或 "Minify" 按钮
+* 在 JetBrains 插件市场中搜索并安装 "StarSQLs"
+* 或从这里下载插件: [StarSQLs Plugin](https://plugins.jetbrains.com/plugin/27846-starsqls)
+
+### Web 界面使用
+
+* 启动 Web 服务器: `cd web && mvn spring-boot:run`，并访问 `http://localhost:8080`
+* 或访问在线站点 [StarSQLs](https://www.starsqls.com)。
+
+## 📦 IDEA 插件
+
 
 ## ⚙️ 配置选项
 

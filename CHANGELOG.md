@@ -7,13 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Unescape Feature: New functionality to convert escape sequences and HTML entities in SQL strings
+- Web:
+  - Added "Unescape" button with light green styling
+  - Auto-save functionality for editor content and settings
+  - Persistent state across page refreshes
+- IDEA Plugin:
+  - Added "Unescape" button to plugin interface
+
+### Changed
+- Web:
+  - Update the panel high to improved user experience 
+- IDEA Plugin:
+  - Update the error message panel
+  - Update the layout to improved user experience
+
+### Fixed
+- Fix html lost css when click the format button
+- Fix miss spaces after the CTE when sql mode is Minify
 
 ## [1.0]
 ### Added
 - Initial release of StarSQLs SQL formatter
 - Support for StarRocks SQL syntax formatting
 - Rich configuration options for SQL formatting
-- Command line interface
 - Web interface with REST API
 - IntelliJ IDEA plugin
 - Comprehensive formatting options:

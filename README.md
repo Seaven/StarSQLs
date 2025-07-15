@@ -18,6 +18,7 @@ StarSQLs is a comprehensive tool suite developed for StarRocks SQL, currently pr
   - Comma position style
   - Function and expression parameter line breaks and alignment
   - CTE, JOIN, SELECT clause formatting
+- **Unescape Functionality**: Convert escape sequences and HTML entities in SQL strings
 - **IntelliJ IDEA Plugin**
 
 ## 🚀 Quick Start
@@ -28,13 +29,15 @@ StarSQLs is a comprehensive tool suite developed for StarRocks SQL, currently pr
 - Maven 3.6+
 - IntelliJ IDEA (optional, for plugin development)
 
-### IDEA Plugin Usage
+### IDEA Plugin
 
-1. Build the plugin and install it in IDEA
-2. Open the tool window (View → Tool Windows → StarSQLs)
-3. Enter SQL code in the text area
-4. Configure formatting options
-5. Click "Format" or "Minify" button
+* Search & install "StarSQLs" in the JetBrains Plugin Marketplace
+* Or download the plugin from here: [StarSQLs Plugin](https://plugins.jetbrains.com/plugin/27846-starsqls)
+
+### Website
+
+* Start the web server: `cd web && mvn spring-boot:run`, open your browser and navigate to `http://localhost:8080`
+* Or you can use the online site at [StarSQLs](https://www.starsqls.com).
 
 ## ⚙️ Configuration Options
 
