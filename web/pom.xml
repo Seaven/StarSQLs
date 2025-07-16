@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.starsqls</groupId>
         <artifactId>starsqls</artifactId>
-        <version>1.0</version>
+        <version>1.1</version>
     </parent>
 
     <artifactId>starsqls-web</artifactId>
@@ -65,7 +65,7 @@
         <dependency>
             <groupId>com.starsqls</groupId>
             <artifactId>starsqls-core</artifactId>
-            <version>1.0</version>
+            <version>1.1</version>
         </dependency>
     </dependencies>
 

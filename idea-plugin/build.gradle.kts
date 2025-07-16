@@ -30,7 +30,7 @@ dependencies {
         // bundledPlugin("com.intellij.java")
     }
 
-    implementation(files("../core/target/starsqls-core-1.0.jar"))
+    implementation(files("../core/target/starsqls-core-1.1.jar"))
 }
 
 intellijPlatform {
@@ -61,12 +61,11 @@ intellijPlatform {
             privateKey = providers.environmentVariable("PRIVATE_KEY")
             password = providers.environmentVariable("PRIVATE_KEY_PASSWORD")
         }
-
-        publishing {
-            token = providers.environmentVariable("PUBLISH_TOKEN")
-            channels = providers.gradleProperty("pluginVersion").map { listOf(it.substringAfter('-', "").substringBefore('.').ifEmpty { "default" }) }
-        }
     */
+    publishing {
+        token = providers.environmentVariable("IDEA_PUBLISH_TOKEN")
+        channels = listOf("stable")
+    }
 
     pluginVerification {
         ides {
@@ -113,7 +112,7 @@ tasks {
     }
 
     publishPlugin {
-        dependsOn(patchChangelog)
+        // dependsOn(patchChangelog)
     }
 }
 

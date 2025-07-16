@@ -8,7 +8,7 @@
     <name>StarSQLs</name>
 
     <!-- Plugin version -->
-    <version>1.0</version>
+    <version>1.1</version>
 
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
     <vendor url="https://github.com/Seaven">Seaven</vendor>
@@ -25,6 +25,7 @@
         <li><strong>Rich Configuration Options:</strong> Extensive customization for indentation, line length, keyword style, and more</li>
         <li><strong>Advanced Clause Formatting:</strong> Specialized handling for CTE, JOIN, SELECT, GROUP BY, ORDER BY clauses</li>
         <li><strong>Multiple Output Formats:</strong> Support for both pretty print and minified output</li>
+        <li><strong>Unescape Functionality:</strong> Convert escape sequences and HTML entities in SQL strings</li>
         <li><strong>Real-time Formatting:</strong> Instant SQL formatting with customizable rules</li>
     </ul>
     
