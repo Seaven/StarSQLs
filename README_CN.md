@@ -38,7 +38,7 @@ StarSQLs 是一个为 StarRocks SQL 开发的工具集合，目前提供 SQL 格
 ### Web 界面使用
 
 * 启动 Web 服务器: `cd web && mvn spring-boot:run`，并访问 `http://localhost:8080`
-* 或访问在线站点 [StarSQLs](https://www.starsqls.com)。
+* 或访问在线站点 [StarSQLs](http://47.96.120.199:8080/)。
 
 ## 📦 IDEA 插件
 

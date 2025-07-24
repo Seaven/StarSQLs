@@ -37,7 +37,7 @@ StarSQLs is a comprehensive tool suite developed for StarRocks SQL, currently pr
 ### Website
 
 * Start the web server: `cd web && mvn spring-boot:run`, open your browser and navigate to `http://localhost:8080`
-* Or you can use the online site at [StarSQLs](https://www.starsqls.com).
+* Or you can use the online site at [StarSQLs](http://47.96.120.199:8080/).
 
 ## ⚙️ Configuration Options
 
