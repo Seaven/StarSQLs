@@ -81,6 +81,8 @@ public class FormatOptions {
 
     public boolean formatSubquery = false;
 
+    public boolean ignoreComment = false;
+
     public static FormatOptions allFormatOptions() {
         FormatOptions options = new FormatOptions();
         options.mode = Mode.FORMAT;
@@ -136,6 +138,7 @@ public class FormatOptions {
         options.breakGroupByItems = false;
         options.breakOrderBy = false;
         options.formatSubquery = true;
+        options.ignoreComment = true;
 
         return options;
     }

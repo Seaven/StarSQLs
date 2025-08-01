@@ -91,10 +91,15 @@ public class FormatPrinterBase extends StarRocksBaseVisitor<Void> implements Pri
             if (t.getChannel() != Token.HIDDEN_CHANNEL) {
                 index += t.getText().chars().filter(c -> !Character.isWhitespace(c)).count();
             } else {
-                // replace -- to /* */, because -- will comment the real sql
-                final String c = t.getText().startsWith("--") ? "/*" + t.getText().substring(2).trim() + "*/\n"
-                        : t.getText();
-                comments.compute(index, (k, s) -> Strings.nullToEmpty(s) + c);
+                if (t.getText().startsWith("/*+")) {
+                    // Optimizer hint comments, save them as comments
+                    comments.compute(index, (k, s) -> Strings.nullToEmpty(s) + t.getText());
+                } else if (!options.ignoreComment) {
+                    // replace -- to /* */, because -- will comment the real sql
+                    final String c = t.getText().startsWith("--") ? "/*" + t.getText().substring(2).trim() + "*/"
+                            : t.getText();
+                    comments.compute(index, (k, s) -> Strings.nullToEmpty(s) + c);
+                }
             }
         }
     }
