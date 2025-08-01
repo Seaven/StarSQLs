@@ -1103,7 +1103,11 @@ public class FormatPrinter extends FormatPrinterBase {
                 visitList(ctx.sortItem(), comma());
             } else if (func == StarRocksParser.GROUP_CONCAT) {
                 visit(ctx.setQuantifier());
-                visitList(ctx.expression().subList(0, ctx.expression().size() - 1), comma());
+                if (ctx.SEPARATOR() != null) {
+                    visitList(ctx.expression().subList(0, ctx.expression().size() - 1), comma());
+                } else {
+                    visitList(ctx.expression(), comma());
+                }
                 if (ctx.ORDER() != null) {
                     sql.appendKey(ctx.ORDER());
                     sql.appendKey(ctx.BY());

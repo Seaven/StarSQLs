@@ -13,6 +13,7 @@ package com.starsqls;// Licensed under the Apache License, Version 2.0 (the "Lic
 import com.google.common.collect.Lists;
 import com.starsqls.format.FormatOptions;
 import com.starsqls.format.FormatPrinter;
+import com.starsqls.format.Printer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -23,6 +24,8 @@ import java.io.File;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class StrictPrintTest extends PrinterTestBase {
     private final FormatOptions options = new FormatOptions();
@@ -89,5 +92,17 @@ public class StrictPrintTest extends PrinterTestBase {
     @Test
     public void testWindow() {
         testComplex("complex/complex_case_4.sql", "strict_complex/complex_case_4.sql");
+    }
+
+    @Test
+    public void testIgnoreComment() {
+        FormatOptions options = new FormatOptions();
+        options.mode = FormatOptions.Mode.MINIFY;
+        Printer printer = Printer.create(options);
+
+        String input = "SELECT GROUP_CONCAT(DISTINCT name) FROM tableA";
+        String expected = "SELECT GROUP_CONCAT(DISTINCT name) FROM tableA";
+        String result = printer.format(input);
+        assertEquals(expected, result);
     }
 }
