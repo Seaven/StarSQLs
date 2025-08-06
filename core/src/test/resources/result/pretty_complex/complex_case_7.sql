@@ -9,7 +9,7 @@ sales_data AS (
         s.amount , 
         RANK() OVER (PARTITION BY s.store_id ORDER BY s.amount DESC) AS store_rank
     FROM retail_sales s
-    WHERE s.sale_date >= DATE'2024-01-01'
+    WHERE s.sale_date >= DATE '2024-01-01'
     UNION ALL 
     SELECT 
         'online' AS channel , 
@@ -20,7 +20,7 @@ sales_data AS (
         o.amount , 
         RANK() OVER (PARTITION BY o.store_id ORDER BY o.amount DESC) AS store_rank
     FROM online_orders o
-    WHERE o.order_date >= DATE'2024-01-01'
+    WHERE o.order_date >= DATE '2024-01-01'
     UNION ALL 
     SELECT 
         'wholesale' AS channel , 
@@ -31,7 +31,7 @@ sales_data AS (
         w.amount , 
         RANK() OVER (PARTITION BY w.client_id ORDER BY w.amount DESC) AS store_rank
     FROM wholesale_orders w
-    WHERE w.order_date >= DATE'2024-01-01'
+    WHERE w.order_date >= DATE '2024-01-01'
 ) , 
 product_metrics AS (
     SELECT 
@@ -130,7 +130,7 @@ SELECT
                                    sd.amount))
         FROM sales_data sd
         WHERE sd.product_id = pm.id
-            AND sd.sale_date >= DATE'2024-01-01'
+            AND sd.sale_date >= DATE '2024-01-01'
     ) AS sales_history
 FROM product_metrics pm
     LEFT JOIN store_performance sp
@@ -146,7 +146,7 @@ FROM product_metrics pm
                 ON o.id = oi.order_id
         WHERE oi.product_id = pm.id
     ) c
-        ON true
+        ON TRUE
 WHERE pm.total_amount > pm.category_avg
     AND sp.total_sales > (
         SELECT 

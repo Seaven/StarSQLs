@@ -18,7 +18,7 @@ customer_segments AS (/* Identify customer segments based on purchase behavior *
             ON o.id = oi.order_id
         LEFT JOIN products p
             ON oi.product_id = p.id
-    WHERE o.order_date >= DATE'2024-01-01'
+    WHERE o.order_date >= DATE '2024-01-01'
     GROUP BY 
         c.id , 
         c.name
@@ -39,7 +39,7 @@ product_analysis AS (/* Analyze product performance metrics */
             ON p.id = oi.product_id
         JOIN orders o
             ON oi.order_id = o.id
-    WHERE o.order_date >= DATE'2024-01-01'
+    WHERE o.order_date >= DATE '2024-01-01'
     GROUP BY 
         p.id , 
         p.name , 
@@ -66,7 +66,7 @@ inventory_status AS (/* Monitor inventory levels and movements */
     FROM inventory_movements i
         JOIN warehouses w
             ON i.warehouse_id = w.id
-    WHERE i.movement_date >= DATE'2024-01-01'
+    WHERE i.movement_date >= DATE '2024-01-01'
     GROUP BY 
         i.product_id , 
         i.warehouse_id , 
@@ -131,7 +131,7 @@ SELECT/* Customer information */
                 ON o.id = oi.order_id
         WHERE o.customer_id = cs.id
             AND oi.product_id = pa.id
-            AND o.order_date >= DATE'2024-01-01'
+            AND o.order_date >= DATE '2024-01-01'
     ) AS order_history
 FROM customer_segments cs
     CROSS JOIN product_analysis pa
@@ -149,7 +149,7 @@ FROM customer_segments cs
                 ON oi.order_id = o.id
         WHERE o.customer_id = cs.id
     ) cp
-        ON true
+        ON TRUE
 WHERE/* Filter conditions */ cs.total_spent > 1000
     AND pa.total_revenue > pa.category_avg
     AND ins.current_stock > 0
@@ -161,7 +161,7 @@ WHERE/* Filter conditions */ cs.total_spent > 1000
                 ON o.id = oi.order_id
         WHERE o.customer_id = cs.id
             AND oi.product_id = pa.id
-            AND o.order_date >= DATE'2024-01-01'
+            AND o.order_date >= DATE '2024-01-01'
     )
 GROUP BY/* Group by all non-aggregated columns */ 
     cs.id , 

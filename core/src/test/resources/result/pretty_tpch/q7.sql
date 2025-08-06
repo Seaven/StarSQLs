@@ -19,7 +19,7 @@ FROM (
             AND n2.n_name = 'IRAN')
             OR (n1.n_name = 'IRAN'
             AND n2.n_name = 'CANADA'))
-            AND l_shipdate BETWEEN date'1995-01-01' AND date'1996-12-31'
+            AND l_shipdate BETWEEN DATE '1995-01-01' AND DATE '1996-12-31'
     ) AS shipping
 GROUP BY 
     supp_nation , 

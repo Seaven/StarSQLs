@@ -105,4 +105,16 @@ public class StrictPrintTest extends PrinterTestBase {
         String result = printer.format(input);
         assertEquals(expected, result);
     }
+
+    @Test
+    public void testDateSub() {
+        FormatOptions options = new FormatOptions();
+        options.mode = FormatOptions.Mode.MINIFY;
+        Printer printer = Printer.create(options);
+
+        String input = "select date_sub('2023-11-02',interval 1 year) from tableA";
+        String expected = "select date_sub('2023-11-02', interval 1 year) from tableA";
+        String result = printer.format(input);
+        assertEquals(expected, result);
+    }
 }

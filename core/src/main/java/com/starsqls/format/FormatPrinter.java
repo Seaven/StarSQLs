@@ -842,12 +842,6 @@ public class FormatPrinter extends FormatPrinterBase {
     }
 
     @Override
-    public Void visitLiteral(StarRocksParser.LiteralContext ctx) {
-        sql.append(ctx.getText());
-        return null;
-    }
-
-    @Override
     public Void visitCast(StarRocksParser.CastContext ctx) {
         sql.appendKey(ctx.CAST(), false, false);
         sql.intoParentheses(() -> {
@@ -972,7 +966,7 @@ public class FormatPrinter extends FormatPrinterBase {
 
     @Override
     public Void visitBooleanLiteral(StarRocksParser.BooleanLiteralContext ctx) {
-        sql.appendKey(ctx.getText());
+        sql.appendKey(ctx.getText(), false, false);
         return null;
     }
 
@@ -986,19 +980,13 @@ public class FormatPrinter extends FormatPrinterBase {
     public Void visitDateLiteral(StarRocksParser.DateLiteralContext ctx) {
         sql.appendKey(ctx.DATE());
         sql.appendKey(ctx.DATETIME());
-        sql.append(ctx.getText());
+        sql.append(ctx.string().getText());
         return null;
     }
 
     @Override
     public Void visitStringLiteral(StarRocksParser.StringLiteralContext ctx) {
         sql.append(ctx.getText());
-        return null;
-    }
-
-    @Override
-    public Void visitIntervalLiteral(StarRocksParser.IntervalLiteralContext ctx) {
-        visit(ctx.interval());
         return null;
     }
 
@@ -1297,7 +1285,7 @@ public class FormatPrinter extends FormatPrinterBase {
     public Void visitInterval(StarRocksParser.IntervalContext ctx) {
         sql.appendKey(ctx.INTERVAL().getText());
         visit(ctx.value);
-        visit(ctx.from);
+        sql.appendKey(ctx.from.getText(), true, false);
         return null;
     }
 

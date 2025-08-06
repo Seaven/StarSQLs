@@ -28,7 +28,7 @@ sales_metrics AS (
         AVG(s.amount) OVER (PARTITION BY s.region_id) AS region_avg , 
         RANK() OVER (ORDER BY SUM(s.amount) DESC) AS sales_rank
     FROM sales s
-    WHERE s.date >= DATE'2024-01-01'
+    WHERE s.date >= DATE '2024-01-01'
     GROUP BY 
         s.salesperson_id , 
         s.region_id
@@ -95,7 +95,7 @@ FROM employee_hierarchy e
     LEFT JOIN customer_segments cs
         ON e.id = cs.id
     LEFT JOIN TABLE (flatten(ARRAY<INT>[1 , 2 , 3])) t
-        ON true
+        ON TRUE
     LEFT JOIN LATERAL (
         SELECT 
             ARRAY_AGG(product_id) AS product_ids
@@ -107,7 +107,7 @@ FROM employee_hierarchy e
                 WHERE salesperson_id = e.id
             )
     ) oi
-        ON true
+        ON TRUE
     LEFT JOIN products p
         ON p.id = ANY(oi.product_ids)
 WHERE e.level <= 5

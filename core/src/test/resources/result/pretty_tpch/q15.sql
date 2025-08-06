@@ -9,8 +9,8 @@ FROM supplier , (
             l_suppkey AS supplier_no , 
             SUM(l_extendedprice * (1 - l_discount)) AS total_revenue
         FROM lineitem
-        WHERE l_shipdate >= date'1995-07-01'
-            AND l_shipdate < date'1995-10-01'
+        WHERE l_shipdate >= DATE '1995-07-01'
+            AND l_shipdate < DATE '1995-10-01'
         GROUP BY 
             l_suppkey
     ) a
@@ -23,8 +23,8 @@ WHERE s_suppkey = supplier_no
                     l_suppkey AS supplier_no , 
                     SUM(l_extendedprice * (1 - l_discount)) AS total_revenue
                 FROM lineitem
-                WHERE l_shipdate >= date'1995-07-01'
-                    AND l_shipdate < date'1995-10-01'
+                WHERE l_shipdate >= DATE '1995-07-01'
+                    AND l_shipdate < DATE '1995-10-01'
                 GROUP BY 
                     l_suppkey
             ) b

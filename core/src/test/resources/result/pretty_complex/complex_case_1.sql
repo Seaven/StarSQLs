@@ -4,7 +4,7 @@ sales_cte AS (
         s.seller_id , 
         SUM(s.amount) AS total_sales
     FROM sales s
-    WHERE s.date BETWEEN DATE'2024-01-01' AND DATE'2024-12-31'
+    WHERE s.date BETWEEN DATE '2024-01-01' AND DATE '2024-12-31'
     GROUP BY 
         s.seller_id
     HAVING SUM(s.amount) > 10000
@@ -61,7 +61,7 @@ WHERE c.rnk <= 100
     AND o.status IN ('shipped' , 
     'delivered')
     AND p.price BETWEEN 10 AND 1000
-    AND o.created_at > DATE'2024-01-01'
+    AND o.created_at > DATE '2024-01-01'
 ORDER BY 
     total_spent DESC , 
     c.name

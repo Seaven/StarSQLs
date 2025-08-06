@@ -12,7 +12,7 @@ inventory_analysis AS (
     FROM products p
         JOIN inventory i
             ON p.id = i.product_id
-    WHERE i.last_updated >= DATE'2024-01-01'
+    WHERE i.last_updated >= DATE '2024-01-01'
     GROUP BY 
         p.id , 
         p.name , 
@@ -108,7 +108,7 @@ SELECT
                                    h.price))
         FROM inventory_history h
         WHERE h.product_id = ia.id
-            AND h.date >= DATE'2024-01-01'
+            AND h.date >= DATE '2024-01-01'
     ) AS historical_data
 FROM inventory_analysis ia
     LEFT JOIN supplier_performance sp
@@ -116,7 +116,7 @@ FROM inventory_analysis ia
     LEFT JOIN category_metrics cm
         ON ia.category = cm.name
     LEFT JOIN TABLE (flatten(ia.warehouse_ids)) w
-        ON true
+        ON TRUE
     LEFT JOIN LATERAL (
         SELECT 
             ARRAY_AGG(DISTINCT o.id) AS order_ids , 
@@ -126,7 +126,7 @@ FROM inventory_analysis ia
                 ON o.id = oi.order_id
         WHERE oi.product_id = ia.id
     ) o
-        ON true
+        ON TRUE
 WHERE ia.total_stock > ia.category_avg
     AND sp.total_value > (
         SELECT 
