@@ -90,6 +90,7 @@ class SQLFormatter {
         this.breakGroupByItems = document.getElementById('breakGroupByItems');
         this.breakOrderBy = document.getElementById('breakOrderBy');
         this.formatSubquery = document.getElementById('formatSubquery');
+        this.ignoreComment = document.getElementById('ignoreComment');
     }
 
     bindEvents() {
@@ -134,7 +135,7 @@ class SQLFormatter {
             this.breakCaseWhen, this.alignCaseWhen, this.breakInList, this.alignInList, 
             this.breakAndOr, this.breakExplain, this.breakCTE, this.breakJoinRelations, 
             this.breakJoinOn, this.alignJoinOn, this.breakSelectItems, 
-            this.breakGroupByItems, this.breakOrderBy, this.formatSubquery
+            this.breakGroupByItems, this.breakOrderBy, this.formatSubquery, this.ignoreComment
         ];
         optionElements.forEach(element => {
             element.addEventListener('change', () => this.saveSettings());
@@ -232,7 +233,8 @@ class SQLFormatter {
             breakSelectItems: this.breakSelectItems.checked,
             breakGroupByItems: this.breakGroupByItems.checked,
             breakOrderBy: this.breakOrderBy.checked,
-            formatSubquery: this.formatSubquery.checked
+            formatSubquery: this.formatSubquery.checked,
+            ignoreComment: this.ignoreComment.checked
         };
     }
 
@@ -342,7 +344,8 @@ class SQLFormatter {
             breakSelectItems: this.breakSelectItems.checked,
             breakGroupByItems: this.breakGroupByItems.checked,
             breakOrderBy: this.breakOrderBy.checked,
-            formatSubquery: this.formatSubquery.checked
+            formatSubquery: this.formatSubquery.checked,
+            ignoreComment: this.ignoreComment.checked
         };
         localStorage.setItem(SQLFormatter.SETTINGS_KEY, JSON.stringify(settings));
     }
@@ -371,7 +374,8 @@ class SQLFormatter {
             breakSelectItems: false,
             breakGroupByItems: false,
             breakOrderBy: false,
-            formatSubquery: true
+            formatSubquery: true,
+            ignoreComment: true
         };
         
         // Try to load settings from localStorage, use defaults if not available
@@ -401,6 +405,7 @@ class SQLFormatter {
         this.breakGroupByItems.checked = settings.breakGroupByItems !== undefined ? settings.breakGroupByItems : defaults.breakGroupByItems;
         this.breakOrderBy.checked = settings.breakOrderBy !== undefined ? settings.breakOrderBy : defaults.breakOrderBy;
         this.formatSubquery.checked = settings.formatSubquery !== undefined ? settings.formatSubquery : defaults.formatSubquery;
+        this.ignoreComment.checked = settings.ignoreComment !== undefined ? settings.ignoreComment : defaults.ignoreComment;
         
         // Apply word wrap setting to editor
         if (this.editor) {

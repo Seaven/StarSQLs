@@ -104,7 +104,8 @@ public class FormatMain implements ToolWindowFactory {
                 .add("breakSelectItems", new JBCheckBox("Break select items", options.breakSelectItems))
                 .add("breakGroupByItems", new JBCheckBox("Break group by items", options.breakGroupByItems))
                 .add("breakOrderBy", new JBCheckBox("Break order by", options.breakOrderBy))
-                .add("formatSubquery", new JBCheckBox("Format subquery", options.formatSubquery));
+                .add("formatSubquery", new JBCheckBox("Format subquery", options.formatSubquery))
+                .add("ignoreComment", new JBCheckBox("Ignore comment", options.ignoreComment));
 
         // Buttons
         JButton unescapeBtn = new JButton("Unescape");
@@ -198,6 +199,7 @@ public class FormatMain implements ToolWindowFactory {
         opts.breakGroupByItems = builder.<JBCheckBox>get("breakGroupByItems").isSelected();
         opts.breakOrderBy = builder.<JBCheckBox>get("breakOrderBy").isSelected();
         opts.formatSubquery = builder.<JBCheckBox>get("formatSubquery").isSelected();
+        opts.ignoreComment = builder.<JBCheckBox>get("ignoreComment").isSelected();
         
         // Calculate indent based on character and size selection
         String indentChar = (String) builder.<ComboBox>get("indentChar").getSelectedItem();
