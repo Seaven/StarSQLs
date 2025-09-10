@@ -1147,11 +1147,20 @@ public class FormatPrinter extends FormatPrinterBase {
     }
 
     @Override
+    public Void visitUnitIdentifier(StarRocksParser.UnitIdentifierContext ctx) {
+        sql.appendKey(ctx.getText(), false, false);
+        return null;
+    }
+
+    @Override
     public Void visitSpecialFunctionExpression(StarRocksParser.SpecialFunctionExpressionContext ctx) {
         sql.appendKey(ctx.getChild(0).getText(), false, false);
         sql.intoParentheses(() -> {
             visit(ctx.string());
-            visit(ctx.unitIdentifier());
+            if (ctx.unitIdentifier() != null) {
+                visit(ctx.unitIdentifier());
+                sql.append(comma());
+            }
             if (options.breakFunctionArgs) {
                 if (options.alignFunctionArgs) {
                     sql.intoFixPrefix(() -> visitList(ctx.expression(), commaBreak(true)));

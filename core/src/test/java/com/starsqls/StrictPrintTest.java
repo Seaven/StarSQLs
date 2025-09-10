@@ -117,4 +117,16 @@ public class StrictPrintTest extends PrinterTestBase {
         String result = printer.format(input);
         assertEquals(expected, result);
     }
+
+    @Test
+    public void testTimestampDiff() {
+        FormatOptions options = new FormatOptions();
+        options.mode = FormatOptions.Mode.MINIFY;
+        Printer printer = Printer.create(options);
+
+        String input = "select timestampdiff(SECOND, '2023-11-02', '-1' ) from tableA";
+        String expected = "select timestampdiff(SECOND,'2023-11-02','-1') from tableA";
+        String result = printer.format(input);
+        assertEquals(expected, result);
+    }
 }
