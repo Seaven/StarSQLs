@@ -27,10 +27,11 @@ public class SQLBuilder {
     private int indentLevel = 0;
     private String linePrefix = "";
     private int lastBreakPoint = 0;
+    private int lastNewLineIndex = 0; // Cache last newline position for performance
 
     public SQLBuilder(FormatOptions options) {
         this.options = options;
-        this.sql = new StringBuilder();
+        this.sql = new StringBuilder(10240); // Pre-allocate reasonable size
         this.prefixUnit = options.mode == FormatOptions.Mode.MINIFY ? "" : " ";
 
         String temp = ",";
@@ -75,44 +76,79 @@ public class SQLBuilder {
     }
 
     public SQLBuilder append(String str) {
+        if (str == null || str.isEmpty()) {
+            return this;
+        }
         sql.append(str);
-        if (!StringUtils.isBlank(str)) {
+        // Track newline positions for performance
+        if (str.indexOf('\n') >= 0) {
+            lastNewLineIndex = sql.lastIndexOf("\n");
+        }
+        // Only check for blank if needed for break
+        if (options.mode != FormatOptions.Mode.MINIFY && options.maxLineLength > 0 && lastBreakPoint > 0) {
             breakMaxLength();
         }
         return this;
     }
 
     public SQLBuilder append(String str, boolean prefixSpace, boolean suffixSpace) {
-        if (str == null) {
+        if (str == null || str.isEmpty()) {
             return this;
         }
-        str = str.trim();
+        // Trim once and reuse
+        int start = 0, end = str.length();
+        while (start < end && Character.isWhitespace(str.charAt(start))) start++;
+        while (end > start && Character.isWhitespace(str.charAt(end - 1))) end--;
+        
+        if (start >= end) {
+            return this;
+        }
+        
         if (prefixSpace && !sql.isEmpty()) {
             char l = sql.charAt(sql.length() - 1);
             if (!Character.isWhitespace(l) && l != '(') {
-                append(" ");
+                sql.append(' ');
             }
         }
-        append(str);
+        sql.append(str, start, end);
         if (suffixSpace) {
-            append(" ");
+            sql.append(' ');
+        }
+        // Track newline positions
+        if (str.indexOf('\n', start) >= 0 && str.indexOf('\n', start) < end) {
+            lastNewLineIndex = sql.lastIndexOf("\n");
+        }
+        if (options.mode != FormatOptions.Mode.MINIFY && options.maxLineLength > 0 && lastBreakPoint > 0) {
+            breakMaxLength();
         }
         return this;
     }
 
     private void breakMaxLength() {
-        if (options.mode == FormatOptions.Mode.MINIFY || options.maxLineLength <= 0 || lastBreakPoint <= 0) {
-            return;
-        }
-        int preLineIndex = Math.max(0, sql.lastIndexOf("\n"));
+        // Use cached newline position instead of lastIndexOf
+        int preLineIndex = Math.max(0, lastNewLineIndex);
         int currentLineLength = sql.length() - preLineIndex;
 
         if (currentLineLength > options.maxLineLength && preLineIndex < lastBreakPoint) {
-            String validContent = sql.substring(preLineIndex, lastBreakPoint).trim();
-            int saveLineLength = preLineIndex + options.maxLineLength - lastBreakPoint;
-            if (StringUtils.isBlank(validContent) || saveLineLength > validContent.length() * 3 / 2) {
+            // Check if content between preLineIndex and lastBreakPoint is not blank
+            boolean hasContent = false;
+            for (int i = preLineIndex; i < lastBreakPoint && i < sql.length(); i++) {
+                if (!Character.isWhitespace(sql.charAt(i))) {
+                    hasContent = true;
+                    break;
+                }
+            }
+            
+            if (!hasContent) {
                 return;
             }
+            
+            int saveLineLength = preLineIndex + options.maxLineLength - lastBreakPoint;
+            int validContentLength = lastBreakPoint - preLineIndex;
+            if (saveLineLength > validContentLength * 3 / 2) {
+                return;
+            }
+            
             // If current line exceeds max length, break at the last break point
             int breakIndex = lastBreakPoint;
             for (; breakIndex < sql.length(); breakIndex++) {
@@ -122,7 +158,9 @@ public class SQLBuilder {
             }
             String content = sql.substring(breakIndex);
             sql.setLength(breakIndex);
-            sql.append(newLine());
+            String newLineStr = newLine();
+            sql.append(newLineStr);
+            lastNewLineIndex = sql.length() - newLineStr.length() + newLineStr.lastIndexOf('\n');
             sql.append(content);
         }
     }
@@ -146,30 +184,48 @@ public class SQLBuilder {
     }
 
     public SQLBuilder appendKey(String key, boolean prefixSpace, boolean suffixSpace) {
-        if (key == null) {
+        if (key == null || key.isEmpty()) {
             return this;
         }
-        key = key.trim();
-        if (options.keyWordStyle == FormatOptions.KeyWordStyle.UPPER_CASE) {
-            key = key.toUpperCase();
-        } else if (options.keyWordStyle == FormatOptions.KeyWordStyle.LOWER_CASE) {
-            key = key.toLowerCase();
+        // Trim manually to avoid creating intermediate strings
+        int start = 0, end = key.length();
+        while (start < end && Character.isWhitespace(key.charAt(start))) start++;
+        while (end > start && Character.isWhitespace(key.charAt(end - 1))) end--;
+        
+        if (start >= end) {
+            return this;
         }
+        
         if (prefixSpace && !sql.isEmpty()) {
             char l = sql.charAt(sql.length() - 1);
             if (!Character.isWhitespace(l) && l != '(') {
-                append(" ");
+                sql.append(' ');
             }
         }
-        append(key);
+        
+        // Apply case transformation directly without creating intermediate string
+        if (options.keyWordStyle == FormatOptions.KeyWordStyle.UPPER_CASE) {
+            for (int i = start; i < end; i++) {
+                sql.append(Character.toUpperCase(key.charAt(i)));
+            }
+        } else if (options.keyWordStyle == FormatOptions.KeyWordStyle.LOWER_CASE) {
+            for (int i = start; i < end; i++) {
+                sql.append(Character.toLowerCase(key.charAt(i)));
+            }
+        } else {
+            sql.append(key, start, end);
+        }
+        
         if (suffixSpace) {
-            append(" ");
+            sql.append(' ');
         }
         return this;
     }
 
     public SQLBuilder appendNewLine() {
-        append(newLine());
+        String newLineStr = newLine();
+        sql.append(newLineStr);
+        lastNewLineIndex = sql.length() - newLineStr.length() + newLineStr.lastIndexOf('\n');
         return this;
     }
 

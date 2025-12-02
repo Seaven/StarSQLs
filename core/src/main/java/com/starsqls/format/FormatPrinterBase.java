@@ -52,15 +52,18 @@ public class FormatPrinterBase extends StarRocksBaseVisitor<Void> implements Pri
         if (node.getSymbol().getType() == StarRocksParser.EOF) {
             return null; // Ignore EOF token
         }
-        if (",".equals(node.getText().trim())) {
+        String text = node.getText();
+        // Optimize: avoid multiple trim() calls
+        if (",".equals(text) || (text.length() > 0 && text.trim().equals(","))) {
             sql.append(comma());
             return null;
         }
-        if ("(".equals(node.getText().trim()) || ")".equals(node.getText().trim())) {
-            sql.append(node.getText().trim());
+        char firstChar = text.length() > 0 ? text.charAt(0) : 0;
+        if (firstChar == '(' || firstChar == ')') {
+            sql.append(String.valueOf(firstChar));
             return null;
         }
-        sql.appendKey(node.getText());
+        sql.appendKey(text);
         return null;
     }
 
@@ -87,17 +90,25 @@ public class FormatPrinterBase extends StarRocksBaseVisitor<Void> implements Pri
     private void initComments(CommonTokenStream tokenStream) {
         tokenStream.fill();
         long index = 0;
-        for (Token t : tokenStream.getTokens()) {
+        List<Token> tokens = tokenStream.getTokens();
+        for (Token t : tokens) {
+            String tokenText = t.getText();
             if (t.getChannel() != Token.HIDDEN_CHANNEL) {
-                index += t.getText().chars().filter(c -> !Character.isWhitespace(c)).count();
+                // Optimize: count non-whitespace chars more efficiently
+                for (int i = 0; i < tokenText.length(); i++) {
+                    if (!Character.isWhitespace(tokenText.charAt(i))) {
+                        index++;
+                    }
+                }
             } else {
-                if (t.getText().startsWith("/*+")) {
+                if (tokenText.startsWith("/*+")) {
                     // Optimizer hint comments, save them as comments
-                    comments.compute(index, (k, s) -> Strings.nullToEmpty(s) + t.getText());
+                    comments.compute(index, (k, s) -> Strings.nullToEmpty(s) + tokenText);
                 } else if (!options.ignoreComment) {
                     // replace -- to /* */, because -- will comment the real sql
-                    final String c = t.getText().startsWith("--") ? "/*" + t.getText().substring(2).trim() + "*/"
-                            : t.getText();
+                    final String c = tokenText.startsWith("--") 
+                            ? "/*" + tokenText.substring(2).trim() + "*/"
+                            : tokenText;
                     comments.compute(index, (k, s) -> Strings.nullToEmpty(s) + c);
                 }
             }
@@ -108,17 +119,16 @@ public class FormatPrinterBase extends StarRocksBaseVisitor<Void> implements Pri
         if (comments.isEmpty()) {
             return sql;
         }
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(sql.length() + comments.size() * 20); // Pre-allocate
         int count = 0;
         int start = 0;
         for (var entry : comments.entrySet()) {
             int index = entry.getKey().intValue();
             String comment = entry.getValue();
-            // find index
+            // find index - optimize to avoid repeated charAt calls
             int find = start;
             while (find < sql.length() && count < index) {
-                char c = sql.charAt(find);
-                if (!Character.isWhitespace(c)) {
+                if (!Character.isWhitespace(sql.charAt(find))) {
                     count++;
                 }
                 find++;
