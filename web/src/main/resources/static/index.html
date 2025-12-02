@@ -75,10 +75,6 @@
                         <input type="number" id="indentCount" min="1" max="8" value="4">
                     </div>
                     <div class="option-group single-column">
-                        <label for="maxLineLength">Max line length:</label>
-                        <input type="number" id="maxLineLength" min="40" max="200" value="120">
-                    </div>
-                    <div class="option-group single-column">
                         <label for="keyWordStyle">Keyword case:</label>
                         <select id="keyWordStyle">
                             <option value="UPPER_CASE">UPPER_CASE</option>
@@ -94,6 +90,11 @@
                             <option value="SPACE_BEFORE">SPACE_BEFORE</option>
                             <option value="BOTH">BOTH</option>
                         </select>
+                    </div>
+                    <div class="option-group single-column">
+                        <input type="checkbox" id="enableMaxLineLength">
+                        <label for="maxLineLength">Max line length:</label>
+                        <input type="number" id="maxLineLength" min="40" value="120">
                     </div>
                 </div>
             </div>

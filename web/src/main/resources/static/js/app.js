@@ -71,6 +71,7 @@ class SQLFormatter {
         // Options elements
         this.indentChar = document.getElementById('indentChar');
         this.indentCount = document.getElementById('indentCount');
+        this.enableMaxLineLength = document.getElementById('enableMaxLineLength');
         this.maxLineLength = document.getElementById('maxLineLength');
         this.keyWordStyle = document.getElementById('keyWordStyle');
         this.commaStyle = document.getElementById('commaStyle');
@@ -108,6 +109,12 @@ class SQLFormatter {
             this.saveSettings();
         });
         
+        // Enable max line length toggle
+        this.enableMaxLineLength.addEventListener('change', () => {
+            this.maxLineLength.disabled = !this.enableMaxLineLength.checked;
+            this.saveSettings();
+        });
+        
         // Auto-format on Enter (Ctrl+Enter)
         this.editor.onKeyDown((e) => {
             if (e.ctrlKey && e.code === 'Enter') {
@@ -130,8 +137,8 @@ class SQLFormatter {
     // Bind change events to all option elements
     bindOptionElements() {
         const optionElements = [
-            this.indentChar, this.indentCount, this.maxLineLength, this.keyWordStyle, 
-            this.commaStyle, this.breakFunctionArgs, this.alignFunctionArgs, 
+            this.indentChar, this.indentCount, this.enableMaxLineLength, this.maxLineLength, 
+            this.keyWordStyle, this.commaStyle, this.breakFunctionArgs, this.alignFunctionArgs, 
             this.breakCaseWhen, this.alignCaseWhen, this.breakInList, this.alignInList, 
             this.breakAndOr, this.breakExplain, this.breakCTE, this.breakJoinRelations, 
             this.breakJoinOn, this.alignJoinOn, this.breakSelectItems, 
@@ -212,10 +219,15 @@ class SQLFormatter {
         const indentCount = parseInt(this.indentCount.value);
         const indent = indentChar === '\\t' ? '\t'.repeat(indentCount) : ' '.repeat(indentCount);
         
+        // Use max line length only if enabled, otherwise use a very large number
+        const maxLineLength = this.enableMaxLineLength.checked 
+            ? parseInt(this.maxLineLength.value) 
+            : 999999;
+        
         return {
             mode: 'FORMAT', // Always FORMAT for format, MINIFY for minify
             indent: indent,
-            maxLineLength: parseInt(this.maxLineLength.value),
+            maxLineLength: maxLineLength,
             keyWordStyle: this.keyWordStyle.value,
             commaStyle: this.commaStyle.value,
             breakFunctionArgs: this.breakFunctionArgs.checked,
@@ -344,6 +356,7 @@ class SQLFormatter {
             wordWrap: this.wordWrapToggle.checked,
             indentChar: this.indentChar.value,
             indentCount: this.indentCount.value,
+            enableMaxLineLength: this.enableMaxLineLength.checked,
             maxLineLength: this.maxLineLength.value,
             keyWordStyle: this.keyWordStyle.value,
             commaStyle: this.commaStyle.value,
@@ -374,6 +387,7 @@ class SQLFormatter {
             wordWrap: false,
             indentChar: ' ',
             indentCount: 4,
+            enableMaxLineLength: false,
             maxLineLength: 120,
             keyWordStyle: 'UPPER_CASE',
             commaStyle: 'SPACE_AFTER',
@@ -404,7 +418,9 @@ class SQLFormatter {
         this.wordWrapToggle.checked = settings.wordWrap !== undefined ? settings.wordWrap : defaults.wordWrap;
         this.indentChar.value = settings.indentChar || defaults.indentChar;
         this.indentCount.value = settings.indentCount || defaults.indentCount;
+        this.enableMaxLineLength.checked = settings.enableMaxLineLength !== undefined ? settings.enableMaxLineLength : defaults.enableMaxLineLength;
         this.maxLineLength.value = settings.maxLineLength || defaults.maxLineLength;
+        this.maxLineLength.disabled = !this.enableMaxLineLength.checked;
         this.keyWordStyle.value = settings.keyWordStyle || defaults.keyWordStyle;
         this.commaStyle.value = settings.commaStyle || defaults.commaStyle;
         this.breakFunctionArgs.checked = settings.breakFunctionArgs !== undefined ? settings.breakFunctionArgs : defaults.breakFunctionArgs;
