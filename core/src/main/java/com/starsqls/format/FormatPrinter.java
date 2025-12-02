@@ -1140,7 +1140,7 @@ public class FormatPrinter extends FormatPrinterBase {
     @Override
     public Void visitSpecialDateTimeExpression(StarRocksParser.SpecialDateTimeExpressionContext ctx) {
         sql.appendKey(ctx.getChild(0).getText(), false, false);
-        for (int i = 0; i < ctx.getChildCount(); i++) {
+        for (int i = 1; i < ctx.getChildCount(); i++) {
             visit(ctx.getChild(i));
         }
         return null;

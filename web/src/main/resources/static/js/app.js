@@ -296,29 +296,47 @@ class SQLFormatter {
     }
 
     showMessage(message, type) {
-        // Remove existing messages
+        // Remove existing messages (keep only one visible for focus)
         const existingMessages = document.querySelectorAll('.message');
         existingMessages.forEach(msg => msg.remove());
 
-        // Create new message
+        // Create message container
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${type}`;
-        messageDiv.textContent = message;
 
-        // Add to body for fixed positioning
+        // Text content wrapper
+        const textSpan = document.createElement('span');
+        textSpan.textContent = message;
+        messageDiv.appendChild(textSpan);
+
+        // Add a close button only for error messages (errors should persist)
+        if (type === 'error') {
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = '×';
+            closeBtn.setAttribute('aria-label', 'Close error message');
+            closeBtn.className = 'message-close';
+            closeBtn.addEventListener('click', () => {
+                messageDiv.style.animation = 'slideOut 0.25s ease-in';
+                setTimeout(() => messageDiv.remove(), 250);
+            });
+            messageDiv.appendChild(closeBtn);
+        }
+
         document.body.appendChild(messageDiv);
 
-        // Auto remove after 3 seconds
-        setTimeout(() => {
-            if (messageDiv.parentNode) {
-                messageDiv.style.animation = 'slideOut 0.3s ease-in';
-                setTimeout(() => {
-                    if (messageDiv.parentNode) {
-                        messageDiv.remove();
-                    }
-                }, 300);
-            }
-        }, 3000);
+        // Success / informational messages auto-dismiss; error messages stay until manually closed
+        if (type !== 'error') {
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.style.animation = 'slideOut 0.3s ease-in';
+                    setTimeout(() => {
+                        if (messageDiv.parentNode) {
+                            messageDiv.remove();
+                        }
+                    }, 300);
+                }
+            }, 3000);
+        }
     }
 
     saveSettings() {
