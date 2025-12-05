@@ -149,7 +149,7 @@ public class NormalizePrinterTest extends PrinterTestBase {
         Printer printer = Printer.create(options);
 
         // Test null input
-        assertNull(printer.format(null));
+        assertNull(printer.format((String) null));
 
         // Test empty input
         assertEquals("", printer.format(""));

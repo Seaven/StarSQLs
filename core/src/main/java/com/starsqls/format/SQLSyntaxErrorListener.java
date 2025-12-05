@@ -25,7 +25,7 @@ class SQLSyntaxErrorListener extends BaseErrorListener {
     @Override
     public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine,
                             String msg, RecognitionException e) {
-        errors.add(String.format("line %d:%d %s", line, charPositionInLine, msg));
+        errors.add("line %d:%d %s".formatted(line, charPositionInLine, msg));
     }
 
     public List<String> getErrors() {

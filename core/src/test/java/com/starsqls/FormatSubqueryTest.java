@@ -18,10 +18,12 @@ public class FormatSubqueryTest extends PrinterTestBase {
         String result = printer.format(sql);
         
         // Should format the subquery with proper indentation
-        Assertions.assertTrue(result.contains("        SELECT \n"
-                + "            id\n"
-                + "        FROM table2\n"
-                + "        WHERE name = 'test'\n"), result);
+        Assertions.assertTrue(result.contains("""
+                        SELECT\s
+                            id
+                        FROM table2
+                        WHERE name = 'test'
+                """), result);
     }
 
     @Test

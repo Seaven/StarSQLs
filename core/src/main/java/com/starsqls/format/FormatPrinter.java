@@ -406,7 +406,9 @@ public class FormatPrinter extends FormatPrinterBase {
             sql.intoParentheses(() -> visit(ctx.argumentList()));
         });
         visit(ctx.AS());
-        sql.append(ctx.alias.getText(), true, false);
+        if (ctx.alias != null) {
+            sql.append(ctx.alias.getText(), true, false);
+        }
         visit(ctx.columnAliases());
         return null;
     }

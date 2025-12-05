@@ -1,5 +1,7 @@
 package com.starsqls.format;
 
+import org.antlr.v4.runtime.tree.ParseTree;
+
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
@@ -39,6 +41,10 @@ public class NormalizePrinter implements Printer {
             result.append(normalize(sql.substring(lastEnd)));
         }
         return result.toString();
+    }
+
+    public String format(ParseTree tree) {
+        throw new UnsupportedOperationException("NormalizePrinter does not support ParseTree formatting.");
     }
 
     private String normalize(String text) {

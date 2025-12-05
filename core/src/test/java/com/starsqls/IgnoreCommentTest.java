@@ -26,8 +26,9 @@ public class IgnoreCommentTest {
         options.ignoreComment = true;
         Printer printer = Printer.create(options);
 
-        String input = "SELECT  /* This is a comment */* FROM tableA -- this is a comment \n"
-                + " where name = 'John' AND age < 30 /* This is a comment */";
+        String input = """
+                SELECT  /* This is a comment */* FROM tableA -- this is a comment\s
+                 where name = 'John' AND age < 30 /* This is a comment */""";
         String expected = "SELECT * FROM tableA where name = 'John' AND age < 30";
         String result = printer.format(input);
         assertEquals(expected, result);
@@ -40,8 +41,9 @@ public class IgnoreCommentTest {
         options.ignoreComment = true;
         Printer printer = Printer.create(options);
 
-        String input = "SELECT  /*+SET_VAR(xx=xx) */* FROM tableA -- this is a comment \n"
-                + " where name = 'John' AND age < 30 /* This is a comment */";
+        String input = """
+                SELECT  /*+SET_VAR(xx=xx) */* FROM tableA -- this is a comment\s
+                 where name = 'John' AND age < 30 /* This is a comment */""";
         String expected = "SELECT/*+SET_VAR(xx=xx) */ * FROM tableA where name = 'John' AND age < 30";
         String result = printer.format(input);
         assertEquals(expected, result);

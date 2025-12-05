@@ -102,9 +102,9 @@ public class PerformanceBenchmark {
         double avgTime = totalTime / (double) iterations / 1_000_000.0; // 转换为毫秒
         double firstTimeMs = firstTime / 1_000_000.0;
         
-        System.out.println("  First run:     " + String.format("%.3f", firstTimeMs) + " ms");
-        System.out.println("  Average time:  " + String.format("%.3f", avgTime) + " ms (" + iterations + " iterations)");
-        System.out.println("  Throughput:    " + String.format("%.0f", 1000.0 / avgTime) + " formats/sec");
+        System.out.println("  First run:     " + "%.3f".formatted(firstTimeMs) + " ms");
+        System.out.println("  Average time:  " + "%.3f".formatted(avgTime) + " ms (" + iterations + " iterations)");
+        System.out.println("  Throughput:    " + "%.0f".formatted(1000.0 / avgTime) + " formats/sec");
         System.out.println("  Output length: " + result.length() + " chars");
     }
     
@@ -120,8 +120,8 @@ public class PerformanceBenchmark {
         double totalTimeMs = totalTime / 1_000_000.0;
         double avgTime = totalTimeMs / batchSize;
         
-        System.out.println("  Total time:    " + String.format("%.3f", totalTimeMs) + " ms");
-        System.out.println("  Average time:  " + String.format("%.3f", avgTime) + " ms");
-        System.out.println("  Throughput:    " + String.format("%.0f", 1000.0 / avgTime) + " formats/sec");
+        System.out.println("  Total time:    " + "%.3f".formatted(totalTimeMs) + " ms");
+        System.out.println("  Average time:  " + "%.3f".formatted(avgTime) + " ms");
+        System.out.println("  Throughput:    " + "%.0f".formatted(1000.0 / avgTime) + " formats/sec");
     }
 }
