@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StarSQLs - SQL Formatter</title>
     <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=3.0">
 </head>
 <body>
     <div class="container">
@@ -38,27 +38,35 @@
             </div>
         </header>
 
-        <div class="main-content">
-            <div class="input-section">
-                <div class="section-header">
-                    <h3>SQL</h3>
-                    <div class="actions">
-                        <label class="word-wrap-toggle">
-                            <input type="checkbox" id="wordWrapToggle">
-                            <span>Word Wrap</span>
-                        </label>
-                        <button id="unescapeBtn" class="btn btn-unescape">Unescape</button>
-                        <button id="formatBtn" class="btn btn-primary">Format</button>
-                        <button id="minifyBtn" class="btn btn-secondary">Minify</button>
-                        <button id="copyBtn" class="btn btn-secondary">Copy</button>
-                        <button id="clearBtn" class="btn btn-secondary">Clear</button>
-                    </div>
-                </div>
-                <div id="monaco-editor" style="height: 100%; min-height: 400px;"></div>
-            </div>
+        <!-- Tab navigation -->
+        <div class="tabs">
+            <button id="editorTab" class="tab-button active">Format</button>
+            <button id="dagTab" class="tab-button">DAG Visualization</button>
         </div>
+        
+        <!-- Format Panel (SQL Editor + Options) -->
+        <div id="formatPanel" class="main-panel active">
+            <div class="main-content">
+                <div class="input-section">
+                    <div class="section-header">
+                        <h3>SQL</h3>
+                        <div class="actions">
+                            <label class="word-wrap-toggle">
+                                <input type="checkbox" id="wordWrapToggle">
+                                <span>Word Wrap</span>
+                            </label>
+                            <button id="unescapeBtn" class="btn btn-unescape">Unescape</button>
+                            <button id="formatBtn" class="btn btn-primary">Format</button>
+                            <button id="minifyBtn" class="btn btn-secondary">Minify</button>
+                            <button id="copyBtn" class="btn btn-secondary">Copy</button>
+                            <button id="clearBtn" class="btn btn-secondary">Clear</button>
+                        </div>
+                    </div>
+                    <div id="monaco-editor"></div>
+                    </div>
+                    </div>
 
-        <div class="options-panel">            
+            <div class="options-panel">
             <!-- Common Keywords -->
             <div class="option-section">
                 <h4>Common Keywords</h4>
@@ -164,11 +172,87 @@
                 </div>
             </div>
         </div>
+        </div>
         
-    </div>
-
-    <!-- Monaco Editor CDN -->
+        <!-- DAG Panel (SQL Editor + DAG Visualization) -->
+        <div id="dagPanel" class="main-panel">
+            <div class="main-content">
+                <div class="input-section">
+                    <div class="section-header">
+                        <h3>SQL</h3>
+                        <div class="actions">
+                            <button id="toggleEditorBtn" class="btn btn-secondary" title="Minimize/Restore Editor">
+                                <svg class="editor-minimize-icon" width="16" height="16" viewBox="0 0 16 16"
+                                    fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M1 8a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 8zm7-8a.5.5 0 0 1 .5.5v3.793l1.146-1.147a.5.5 0 0 1 .708.708l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 1 1 .708-.708L7.5 4.293V.5A.5.5 0 0 1 8 0zm-.5 11.707-1.146 1.147a.5.5 0 0 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 11.707V15.5a.5.5 0 0 1-1 0v-3.793z" />
+                                </svg>
+                                <svg class="editor-restore-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"
+                                    style="display: none;">
+                                    <path fill-rule="evenodd"
+                                        d="M8 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 2.707V14.5a.5.5 0 0 0 .5.5z" />
+                                </svg>
+                            </button>
+                            <button id="analyzeBtn" class="btn btn-dag">Analyze DAG</button>
+                        </div>
+                    </div>
+                    <div id="monaco-editor-dag"></div>
+                </div>
+            </div>
+            <!-- Resizable divider -->
+            <div id="editorResizer" class="editor-resizer">
+                <div class="resizer-line"></div>
+            </div>
+            <div class="dag-panel-right">
+                <div class="dag-section">
+                    <div class="section-header">
+                        <h3>DAG Visualization</h3>
+                        <div class="actions">
+                            <select id="themeSelector" class="theme-selector" title="Select Theme">
+                                <option value="modern">Modern Blue</option>
+                                <option value="professional">Professional</option>
+                                <option value="ocean">Ocean</option>
+                                <option value="forest">Forest</option>
+                                <option value="purple">Purple Dream</option>
+                                <option value="github">GitHub</option>
+                            </select>
+                            <button id="fitBtn" class="btn btn-secondary" title="Fit to Screen">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 1 .908-.417A4 4 0 1 0 8 4v1.5L5.5 3 8 .5V2a5 5 0 0 1 0 10V11a4 4 0 0 0 0-8z" />
+                                    <path
+                                        d="M8.5 7.5a.5.5 0 0 0-1 0v2.793l-.146-.146a.5.5 0 0 0-.708.708l1 1a.5.5 0 0 0 .708 0l1-1a.5.5 0 0 0-.708-.708L8.5 10.293V7.5z" />
+                                </svg>
+                            </button>
+                            <button id="fullscreenBtn" class="btn btn-secondary" title="Toggle Fullscreen">
+                                <svg class="fullscreen-enter-icon" width="16" height="16" viewBox="0 0 16 16"
+                                    fill="currentColor">
+                                    <path
+                                        d="M1.5 1a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0v-4A1.5 1.5 0 0 1 1.5 0h4a.5.5 0 0 1 0 1h-4zM10 .5a.5.5 0 0 1 .5-.5h4A1.5 1.5 0 0 1 16 1.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5zM.5 10a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5 1.5 0 0 1 0 14.5v-4a.5.5 0 0 1 .5-.5zm15 0a.5.5 0 0 1 .5.5v4a1.5 1.5 0 0 1-1.5 1.5h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5z" />
+                                </svg>
+                                <svg class="fullscreen-exit-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"
+                                    style="display: none;">
+                                    <path
+                                        d="M5.5 0a.5.5 0 0 1 .5.5v4A1.5 1.5 0 0 1 4.5 6h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5zm5 0a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5 1.5 0 0 1 10 4.5v-4a.5.5 0 0 1 .5-.5zM0 10.5a.5.5 0 0 1 .5-.5h4A1.5 1.5 0 0 1 6 11.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5zm10 1a1.5 1.5 0 0 1 1.5-1.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0v-4z" />
+                                </svg>
+                            </button>
+                            <button id="exportBtn" class="btn btn-unescape" title="Copy DAG as Image">Copy Image</button>
+                        </div>
+                    </div>
+                    <div id="dag-container"></div>
+                </div>
+            </div>
+        </div>
+            </div>
+            <!-- Cytoscape and dependencies MUST load before Monaco to avoid AMD conflicts -->
+            <script src="https://cdn.jsdelivr.net/npm/dagre@0.8.5/dist/dagre.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/cytoscape@3.26.0/dist/cytoscape.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.5.0/cytoscape-dagre.js"></script>
+            
+            <!-- Monaco Editor CDN (uses AMD loader) -->
     <script src="https://unpkg.com/monaco-editor@0.45.0/min/vs/loader.js"></script>
-    <script src="js/app.js"></script>
+    <!-- Application scripts -->
+    <script src="js/dag-visualizer.js?v=3.7"></script>
+    <script src="js/app.js?v=3.7"></script>
 </body>
 </html> 

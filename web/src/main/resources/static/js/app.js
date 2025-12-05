@@ -1,17 +1,22 @@
 class SQLFormatter {
     // Constants
     static API_ENDPOINT = '/api/format';
+    static DAG_API_ENDPOINT = '/api/dag/analyze';
     static SETTINGS_KEY = 'sqlFormatterSettings';
     static CONTENT_KEY = 'sqlFormatterContent';
     static MONACO_CDN_URL = 'https://unpkg.com/monaco-editor@0.45.0/min/vs';
     
     constructor() {
         this.editor = null;
-        this.initMonacoEditor();
+        this.dagEditor = null; // Second editor for DAG panel
+        this.dagVisualizer = null;
+        this.currentTab = 'editor'; // 'editor' or 'dag'
         this.initElements();
-        this.bindEvents();
-        // Delay loading settings to ensure all elements are initialized
-        setTimeout(() => this.loadSettings(), 100);
+        this.initMonacoEditor().then(() => {
+            this.bindEvents();
+            // Delay loading settings to ensure all elements are initialized
+            setTimeout(() => this.loadSettings(), 100);
+        });
     }
 
     async initMonacoEditor() {
@@ -46,9 +51,13 @@ class SQLFormatter {
                     }
                 };
                 
+                // Create main editor
                 this.editor = monaco.editor.create(document.getElementById('monaco-editor'), editorConfig);
                 
-                // Add content change listener to auto-save
+                // Create DAG panel editor (independent, editable)
+                this.dagEditor = monaco.editor.create(document.getElementById('monaco-editor-dag'), editorConfig);
+                
+                // Add content change listener to auto-save (only for format editor)
                 this.editor.onDidChangeModelContent(() => {
                     this.saveEditorContent();
                 });
@@ -68,6 +77,21 @@ class SQLFormatter {
         this.clearBtn = document.getElementById('clearBtn');
         this.copyBtn = document.getElementById('copyBtn');
         this.wordWrapToggle = document.getElementById('wordWrapToggle');
+        
+        // Panel elements
+        this.editorTabBtn = document.getElementById('editorTab');
+        this.dagTabBtn = document.getElementById('dagTab');
+        this.formatPanel = document.getElementById('formatPanel');
+        this.dagPanel = document.getElementById('dagPanel');
+        
+        // DAG elements
+        this.analyzeBtn = document.getElementById('analyzeBtn');
+        this.exportBtn = document.getElementById('exportBtn');
+        this.toggleEditorBtn = document.getElementById('toggleEditorBtn');
+        this.fitBtn = document.getElementById('fitBtn');
+        this.fullscreenBtn = document.getElementById('fullscreenBtn');
+        this.editorResizer = document.getElementById('editorResizer');
+        
         // Options elements
         this.indentChar = document.getElementById('indentChar');
         this.indentCount = document.getElementById('indentCount');
@@ -101,6 +125,27 @@ class SQLFormatter {
         this.clearBtn.addEventListener('click', () => this.clearAll());
         this.copyBtn.addEventListener('click', () => this.copyResult());
         
+        // Tab switching
+        this.editorTabBtn.addEventListener('click', () => this.switchTab('editor'));
+        this.dagTabBtn.addEventListener('click', () => this.switchTab('dag'));
+        
+        // DAG actions
+        this.analyzeBtn.addEventListener('click', () => this.analyzeDAG());
+        this.exportBtn.addEventListener('click', () => this.exportDAG());
+        this.toggleEditorBtn.addEventListener('click', () => this.toggleEditor());
+        this.fitBtn.addEventListener('click', () => this.fitDAG());
+        this.fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
+        
+        // Theme selector
+        const themeSelector = document.getElementById('themeSelector');
+        if (themeSelector) {
+            themeSelector.addEventListener('change', (e) => {
+                if (this.dagVisualizer) {
+                    this.dagVisualizer.setTheme(e.target.value);
+                }
+            });
+        }
+        
         // Word wrap toggle
         this.wordWrapToggle.addEventListener('change', () => {
             this.editor.updateOptions({
@@ -123,10 +168,16 @@ class SQLFormatter {
             }
         });
         
+        // Editor resizer drag
+        this.initEditorResizer();
+        
         // Handle window resize for responsive layout
         window.addEventListener('resize', () => {
             if (this.editor) {
                 this.editor.layout();
+            }
+            if (this.dagEditor) {
+                this.dagEditor.layout();
             }
         });
         
@@ -155,6 +206,222 @@ class SQLFormatter {
             this.editor.setScrollPosition({ scrollLeft: 0, scrollTop: 0 });
         }
     }
+
+    // Switch between editor and DAG tabs
+    switchTab(tab) {
+        this.currentTab = tab;
+        
+        if (tab === 'editor') {
+            this.editorTabBtn.classList.add('active');
+            this.dagTabBtn.classList.remove('active');
+            this.formatPanel.classList.add('active');
+            this.dagPanel.classList.remove('active');
+            
+            // Resize editor when switching back
+            if (this.editor) {
+                setTimeout(() => this.editor.layout(), 100);
+            }
+        } else if (tab === 'dag') {
+            this.editorTabBtn.classList.remove('active');
+            this.dagTabBtn.classList.add('active');
+            this.formatPanel.classList.remove('active');
+            this.dagPanel.classList.add('active');
+            
+            // DAG editor is independent, no sync needed
+            
+            // Resize DAG editor when switching
+            if (this.dagEditor) {
+                setTimeout(() => this.dagEditor.layout(), 100);
+            }
+        }
+    }
+
+    // Analyze SQL and generate DAG
+    async analyzeDAG() {
+        const sql = this.dagEditor.getValue().trim();
+        if (!sql) {
+            this.showMessage('Please enter SQL statement', 'error');
+            return;
+        }
+        
+        this.setLoading(true, 'dag');
+        try {
+            const response = await fetch(SQLFormatter.DAG_API_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ sql: sql })
+            });
+            
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            console.log('DAG result:', result);
+            
+            if (result.success) {
+                // Initialize DAG visualizer if not already done
+                if (!this.dagVisualizer) {
+                    this.dagVisualizer = new SQLDagVisualizer('#dag-container');
+                    await this.dagVisualizer.init();
+                }
+                
+                // Render the DAG (pass nodes and edges separately)
+                await this.dagVisualizer.renderDAG(result.graph.nodes, result.graph.edges);
+                
+                // Auto minimize editor to give more space for DAG
+                const mainContent = this.dagPanel.querySelector('.main-content');
+                if (!mainContent.classList.contains('minimized')) {
+                    this.toggleEditor();
+                }
+                
+                this.showMessage('DAG analysis successful', 'success');
+            } else {
+                this.showMessage(result.error || 'DAG analysis failed', 'error');
+            }
+        } catch (error) {
+            console.error('DAG analysis error:', error);
+            console.error('Error details:', {
+                message: error.message,
+                stack: error.stack,
+                endpoint: SQLFormatter.DAG_API_ENDPOINT
+            });
+            this.showMessage(`Network error: ${error.message}`, 'error');
+        } finally {
+            this.setLoading(false, 'dag');
+        }
+    }
+
+    // Export DAG as PNG
+    async exportDAG() {
+        if (!this.dagVisualizer) {
+            this.showMessage('Please analyze SQL first', 'error');
+            return;
+        }
+        
+        try {
+            await this.dagVisualizer.exportPNG();
+            this.showMessage('DAG image copied to clipboard', 'success');
+        } catch (error) {
+            console.error('Export error:', error);
+            this.showMessage('Failed to copy image to clipboard', 'error');
+        }
+    }
+
+    // Fit DAG to screen
+    fitDAG() {
+        if (!this.dagVisualizer) {
+            this.showMessage('Please analyze SQL first', 'error');
+            return;
+        }
+        this.dagVisualizer.fit();
+    }
+
+    // Toggle editor minimize/restore
+    toggleEditor() {
+        const mainContent = this.dagPanel.querySelector('.main-content');
+        const minimizeIcon = this.toggleEditorBtn.querySelector('.editor-minimize-icon');
+        const restoreIcon = this.toggleEditorBtn.querySelector('.editor-restore-icon');
+        
+        if (mainContent.classList.contains('minimized')) {
+            // Restore editor - use current height or default 300px
+            const currentHeight = mainContent.style.minHeight || '300px';
+            mainContent.classList.remove('minimized');
+            this.dagPanel.classList.remove('editor-minimized');
+            this.dagPanel.style.gridTemplateRows = `${currentHeight} 6px 1fr`;
+            minimizeIcon.style.display = '';
+            restoreIcon.style.display = 'none';
+            this.toggleEditorBtn.title = 'Minimize Editor';
+            
+            // Resize editor when restored
+            if (this.dagEditor) {
+                setTimeout(() => this.dagEditor.layout(), 100);
+            }
+        } else {
+            // Minimize editor
+            mainContent.classList.add('minimized');
+            this.dagPanel.classList.add('editor-minimized');
+            this.dagPanel.style.gridTemplateRows = '60px 6px 1fr';
+            minimizeIcon.style.display = 'none';
+            restoreIcon.style.display = '';
+            this.toggleEditorBtn.title = 'Restore Editor';
+        }
+        
+        // Resize DAG visualization
+        if (this.dagVisualizer) {
+            setTimeout(() => this.dagVisualizer.resize(), 100);
+        }
+    }
+
+    // Initialize editor resizer
+    initEditorResizer() {
+        if (!this.editorResizer) return;
+        
+        let isResizing = false;
+        let startY = 0;
+        let startHeight = 0;
+        
+        this.editorResizer.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            startY = e.clientY;
+            
+            const mainContent = this.dagPanel.querySelector('.main-content');
+            startHeight = mainContent.offsetHeight;
+            
+            // Prevent text selection during drag
+            e.preventDefault();
+            document.body.style.userSelect = 'none';
+            document.body.style.cursor = 'ns-resize';
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+            
+            const deltaY = e.clientY - startY;
+            const newHeight = Math.max(60, Math.min(startHeight + deltaY, window.innerHeight - 200));
+            
+            // Update grid template rows
+            const mainContent = this.dagPanel.querySelector('.main-content');
+            if (mainContent.classList.contains('minimized')) {
+                // Don't resize when minimized
+                return;
+            }
+            
+            this.dagPanel.style.gridTemplateRows = `${newHeight}px 6px 1fr`;
+            mainContent.style.minHeight = `${newHeight}px`;
+            
+            // Resize editors
+            if (this.dagEditor) {
+                this.dagEditor.layout();
+            }
+            if (this.dagVisualizer) {
+                this.dagVisualizer.resize();
+            }
+        });
+        
+        document.addEventListener('mouseup', () => {
+            if (isResizing) {
+                isResizing = false;
+                document.body.style.userSelect = '';
+                document.body.style.cursor = '';
+            }
+        });
+    }
+
+    // Toggle fullscreen mode
+    toggleFullscreen() {
+        if (!this.dagVisualizer) {
+            this.showMessage('Please analyze SQL first', 'error');
+            return;
+        }
+        this.dagVisualizer.toggleFullscreen();
+    }
+
 
     async formatSQL() {
         await this.processSQL('format', 'Formatting');
@@ -294,11 +561,292 @@ class SQLFormatter {
         document.body.removeChild(textArea);
     }
 
-    setLoading(loading) {
-        this.formatBtn.disabled = loading;
-        this.formatBtn.textContent = loading ? 'Formatting...' : 'Format';
-        this.minifyBtn.disabled = loading;
-        this.minifyBtn.textContent = loading ? 'Minifying...' : 'Minify';
+    setLoading(loading, context = 'format') {
+        if (context === 'format') {
+            this.formatBtn.disabled = loading;
+            this.formatBtn.textContent = loading ? 'Formatting...' : 'Format';
+            this.minifyBtn.disabled = loading;
+            this.minifyBtn.textContent = loading ? 'Minifying...' : 'Minify';
+        } else if (context === 'dag') {
+            this.analyzeBtn.disabled = loading;
+            this.analyzeBtn.textContent = loading ? 'Analyzing...' : 'Analyze DAG';
+        }
+    }
+
+    // Export DAG as PNG
+    async exportDAG() {
+        if (!this.dagVisualizer) {
+            this.showMessage('Please analyze SQL first', 'error');
+            return;
+        }
+        
+        try {
+            await this.dagVisualizer.exportPNG();
+            this.showMessage('DAG image copied to clipboard', 'success');
+        } catch (error) {
+            console.error('Export error:', error);
+            this.showMessage('Failed to copy image to clipboard', 'error');
+        }
+    }
+
+    // Fit DAG to screen
+    fitDAG() {
+        if (!this.dagVisualizer) {
+            this.showMessage('Please analyze SQL first', 'error');
+            return;
+        }
+        this.dagVisualizer.fit();
+    }
+
+    // Toggle editor minimize/restore
+    toggleEditor() {
+        const mainContent = this.dagPanel.querySelector('.main-content');
+        const minimizeIcon = this.toggleEditorBtn.querySelector('.editor-minimize-icon');
+        const restoreIcon = this.toggleEditorBtn.querySelector('.editor-restore-icon');
+        
+        if (mainContent.classList.contains('minimized')) {
+            // Restore editor - use current height or default 300px
+            const currentHeight = mainContent.style.minHeight || '300px';
+            mainContent.classList.remove('minimized');
+            this.dagPanel.classList.remove('editor-minimized');
+            this.dagPanel.style.gridTemplateRows = `${currentHeight} 6px 1fr`;
+            minimizeIcon.style.display = '';
+            restoreIcon.style.display = 'none';
+            this.toggleEditorBtn.title = 'Minimize Editor';
+            
+            // Resize editor when restored
+            if (this.dagEditor) {
+                setTimeout(() => this.dagEditor.layout(), 100);
+            }
+        } else {
+            // Minimize editor
+            mainContent.classList.add('minimized');
+            this.dagPanel.classList.add('editor-minimized');
+            this.dagPanel.style.gridTemplateRows = '60px 6px 1fr';
+            minimizeIcon.style.display = 'none';
+            restoreIcon.style.display = '';
+            this.toggleEditorBtn.title = 'Restore Editor';
+        }
+        
+        // Resize DAG visualization
+        if (this.dagVisualizer) {
+            setTimeout(() => this.dagVisualizer.resize(), 100);
+        }
+    }
+
+    // Initialize editor resizer
+    initEditorResizer() {
+        if (!this.editorResizer) return;
+        
+        let isResizing = false;
+        let startY = 0;
+        let startHeight = 0;
+        
+        this.editorResizer.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            startY = e.clientY;
+            
+            const mainContent = this.dagPanel.querySelector('.main-content');
+            startHeight = mainContent.offsetHeight;
+            
+            // Prevent text selection during drag
+            e.preventDefault();
+            document.body.style.userSelect = 'none';
+            document.body.style.cursor = 'ns-resize';
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+            
+            const deltaY = e.clientY - startY;
+            const newHeight = Math.max(60, Math.min(startHeight + deltaY, window.innerHeight - 200));
+            
+            // Update grid template rows
+            const mainContent = this.dagPanel.querySelector('.main-content');
+            if (mainContent.classList.contains('minimized')) {
+                // Don't resize when minimized
+                return;
+            }
+            
+            this.dagPanel.style.gridTemplateRows = `${newHeight}px 6px 1fr`;
+            mainContent.style.minHeight = `${newHeight}px`;
+            
+            // Resize editors
+            if (this.dagEditor) {
+                this.dagEditor.layout();
+            }
+            if (this.dagVisualizer) {
+                this.dagVisualizer.resize();
+            }
+        });
+        
+        document.addEventListener('mouseup', () => {
+            if (isResizing) {
+                isResizing = false;
+                document.body.style.userSelect = '';
+                document.body.style.cursor = '';
+            }
+        });
+    }
+
+    // Toggle fullscreen mode
+    toggleFullscreen() {
+        if (!this.dagVisualizer) {
+            this.showMessage('Please analyze SQL first', 'error');
+            return;
+        }
+        this.dagVisualizer.toggleFullscreen();
+    }
+
+
+    async formatSQL() {
+        await this.processSQL('format', 'Formatting');
+    }
+
+    async minifySQL() {
+        await this.processSQL('minify', 'Minification');
+    }
+
+    async unescapeSQL() {
+        await this.processSQL('normalize', 'Unescaping');
+    }
+
+    // Generic method to process SQL (format, minify, or normalize)
+    async processSQL(action, actionName) {
+        const sql = this.editor.getValue().trim();
+        if (!sql) {
+            this.showMessage('Please enter SQL statement', 'error');
+            return;
+        }
+        
+        this.setLoading(true);
+        try {
+            const options = this.getFormatOptions();
+            if (action === 'minify') {
+                options.mode = 'MINIFY'; // Force minify mode
+            } else if (action === 'normalize') {
+                options.mode = 'NORMALIZE'; // Force normalize mode
+            }
+            
+            const response = await fetch(SQLFormatter.API_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    sql: sql,
+                    options: options
+                })
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                this.editor.setValue(result.formattedSQL);
+                // Ensure scrollbar position is at the left
+                this.resetScrollPosition();
+                this.showMessage(`${actionName} successful`, 'success');
+            } else {
+                this.showMessage(result.error || `${actionName} failed`, 'error');
+            }
+        } catch (error) {
+            console.error(`${actionName} error:`, error);
+            this.showMessage('Network error, please try again later', 'error');
+        } finally {
+            this.setLoading(false);
+        }
+    }
+
+    getFormatOptions() {
+        // Calculate indent value
+        const indentChar = this.indentChar.value;
+        const indentCount = parseInt(this.indentCount.value);
+        const indent = indentChar === '\\t' ? '\t'.repeat(indentCount) : ' '.repeat(indentCount);
+        
+        // Use max line length only if enabled, otherwise use a very large number
+        const maxLineLength = this.enableMaxLineLength.checked 
+            ? parseInt(this.maxLineLength.value) 
+            : 999999;
+        
+        return {
+            mode: 'FORMAT', // Always FORMAT for format, MINIFY for minify
+            indent: indent,
+            maxLineLength: maxLineLength,
+            keyWordStyle: this.keyWordStyle.value,
+            commaStyle: this.commaStyle.value,
+            breakFunctionArgs: this.breakFunctionArgs.checked,
+            alignFunctionArgs: this.alignFunctionArgs.checked,
+            breakCaseWhen: this.breakCaseWhen.checked,
+            alignCaseWhen: this.alignCaseWhen.checked,
+            breakInList: this.breakInList.checked,
+            alignInList: this.alignInList.checked,
+            breakAndOr: this.breakAndOr.checked,
+            breakExplain: this.breakExplain.checked,
+            breakCTE: this.breakCTE.checked,
+            breakJoinRelations: this.breakJoinRelations.checked,
+            breakJoinOn: this.breakJoinOn.checked,
+            alignJoinOn: this.alignJoinOn.checked,
+            breakSelectItems: this.breakSelectItems.checked,
+            breakGroupByItems: this.breakGroupByItems.checked,
+            breakOrderBy: this.breakOrderBy.checked,
+            formatSubquery: this.formatSubquery.checked,
+            ignoreComment: this.ignoreComment.checked
+        };
+    }
+
+    clearAll() {
+        this.editor.setValue('');
+        // Clear saved content
+        localStorage.removeItem(SQLFormatter.CONTENT_KEY);
+        // Ensure scrollbar position is at the left
+        this.resetScrollPosition();
+        this.showMessage('Cleared', 'success');
+    }
+
+    async copyResult() {
+        const text = this.editor.getValue();
+        if (!text) {
+            this.showMessage('No content to copy', 'error');
+            return;
+        }
+        try {
+            await navigator.clipboard.writeText(text);
+            this.showMessage('Copied to clipboard', 'success');
+        } catch (error) {
+            // Fallback for older browsers
+            this.fallbackCopyTextToClipboard(text);
+        }
+    }
+
+    fallbackCopyTextToClipboard(text) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+            document.execCommand('copy');
+            this.showMessage('Copied to clipboard', 'success');
+        } catch (error) {
+            this.showMessage('Copy failed', 'error');
+        }
+        
+        document.body.removeChild(textArea);
+    }
+
+    setLoading(loading, context = 'format') {
+        if (context === 'format') {
+            this.formatBtn.disabled = loading;
+            this.formatBtn.textContent = loading ? 'Formatting...' : 'Format';
+            this.minifyBtn.disabled = loading;
+            this.minifyBtn.textContent = loading ? 'Minifying...' : 'Minify';
+        } else if (context === 'dag') {
+            this.analyzeBtn.disabled = loading;
+            this.analyzeBtn.textContent = loading ? 'Analyzing...' : 'Analyze DAG';
+        }
         
         // Remove body loading class to avoid page flicker
         // Only change button states, keep editor fully interactive

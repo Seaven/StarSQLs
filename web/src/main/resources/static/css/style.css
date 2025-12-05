@@ -15,16 +15,14 @@ body {
     max-width: 1600px;
     margin: 0 auto;
     padding: 15px;
-    display: grid;
-    grid-template-columns: 1fr 380px;
-    grid-template-rows: auto 1fr;
+    display: flex;
+        flex-direction: column;
     gap: 15px;
     height: calc(100vh - 30px);
     overflow: hidden;
 }
 
 header {
-    grid-column: 1 / -1;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 10px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -129,10 +127,126 @@ header {
     flex-shrink: 0;
 }
 
+/* Tab styles */
+.tabs {
+    display: flex;
+    gap: 10px;
+    padding: 0 15px;
+    border-bottom: 2px solid #e0e0e0;
+    margin-bottom: 15px;
+}
+
+.tab-button {
+    padding: 10px 20px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #666;
+    transition: all 0.3s ease;
+}
+
+.tab-button:hover {
+    color: #667eea;
+    background-color: rgba(102, 126, 234, 0.05);
+}
+
+.tab-button.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+}
+
+/* Main panels for Format and DAG */
+.main-panel {
+    display: none;
+    flex: 1;
+    min-height: 0;
+    gap: 15px;
+}
+
+.main-panel.active {
+    display: grid;
+}
+
+/* Format Panel Layout: SQL Editor + Options Panel */
+#formatPanel.active {
+    grid-template-columns: 1fr 380px;
+}
+
+/* DAG Panel Layout: SQL Editor (上) + DAG Visualization (下) */
+#dagPanel.active {
+    display: grid;
+    grid-template-rows: 300px 6px 1fr;
+    /* SQL编辑器固定300px, 6px分隔条, DAG图占剩余空间 */
+    grid-template-columns: 1fr;
+    gap: 0;
+}
+
+/* DAG面板编辑器最小化时,调整grid布局 */
+#dagPanel.active.editor-minimized {
+    grid-template-rows: 60px 6px 1fr;
+    /* 编辑器最小化为60px */
+}
+
+/* 编辑器大小调整器 */
+.editor-resizer {
+    height: 6px;
+    background: linear-gradient(to bottom, #e0e0e0 0%, #f5f5f5 50%, #e0e0e0 100%);
+    cursor: ns-resize;
+    position: relative;
+    z-index: 10;
+    transition: background 0.2s ease;
+}
+
+.editor-resizer:hover {
+    background: linear-gradient(to bottom, #4a90e2 0%, #6ba3e8 50%, #4a90e2 100%);
+}
+
+.editor-resizer .resizer-line {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 3px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 2px;
+}
+
+.editor-resizer:hover .resizer-line {
+    background-color: rgba(255, 255, 255, 0.8);
+}
+
+/* DAG面板中的内容容器 */
+#dagPanel .main-content {
+    min-height: 300px;
+    /* 确保有最小高度 */
+}
+
+/* DAG面板编辑器最小化状态 */
+#dagPanel .main-content.minimized {
+    min-height: 60px;
+}
+
+#dagPanel .main-content.minimized .input-section {
+    min-height: 60px;
+}
+
+#dagPanel .main-content.minimized #monaco-editor-dag {
+    display: none;
+}
+
+/* DAG面板的可视化容器 */
+#dagPanel .dag-panel-right {
+    min-height: 400px;
+    /* DAG图最小高度 */
+}
 .main-content {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    min-height: 0;
 }
 
 .input-section, .output-section {
@@ -142,7 +256,46 @@ header {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 170px);
+    flex: 1;
+        min-height: 0;
+    }
+    
+    /* DAG panel right section */
+    .dag-panel-right {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+        position: relative;
+        transition: all 0.3s ease;
+    }
+    
+    /* Fullscreen mode for DAG panel */
+    .dag-panel-right.fullscreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 9999;
+        border-radius: 0;
+        margin: 0;
+    }
+    
+    #monaco-editor-dag {
+        flex: 1;
+        min-height: 0;
+    }
+    
+    #monaco-editor {
+        flex: 1;
+        min-height: 0;
 }
 
 .section-header {
@@ -199,6 +352,14 @@ header {
     font-size: 14px;
     font-weight: 500;
     transition: all 0.2s ease;
+    display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .btn svg {
+        display: block;
+        margin: auto;
 }
 
 .btn-primary {
@@ -219,6 +380,27 @@ header {
     background-color: #545b62;
 }
 
+.theme-selector {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: white;
+    color: #333;
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.theme-selector:hover {
+    border-color: #667eea;
+    box-shadow: 0 2px 5px rgba(102, 126, 234, 0.2);
+}
+
+.theme-selector:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
 .btn-unescape {
     background-color: #4caf50;
     color: white;
@@ -228,6 +410,23 @@ header {
     background-color: #45a049;
 }
 
+.btn-dag {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.btn-dag:hover {
+    background-color: #138496;
+}
+
+/* Icon-only buttons (for DAG panel) */
+#toggleEditorBtn,
+#fitBtn,
+#fullscreenBtn {
+    padding: 8px;
+    width: 36px;
+    height: 36px;
+}
 #monaco-editor {
     width: 100%;
     height: 100%;
@@ -253,9 +452,11 @@ header {
     border-radius: 10px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     padding: 15px;
-    height: calc(100vh - 170px);
     overflow-y: auto;
     min-width: 350px;
+    display: flex;
+        flex-direction: column;
+        gap: 15px;
 }
 
 .options-panel h3 {
@@ -615,3 +816,85 @@ header {
     }
 }
 
+/* DAG section styles */
+.dag-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+#dag-container {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+}
+
+/* Navigator (minimap) styles */
+#cy-navigator {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 200px;
+    height: 150px;
+    border: 2px solid #3498db;
+    border-radius: 8px;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    z-index: 100;
+}
+
+#nav-canvas {
+    display: block;
+    cursor: pointer;
+}
+
+#nav-viewport {
+    position: absolute;
+    border: 2px solid #e74c3c;
+    background: rgba(231, 76, 60, 0.1);
+    pointer-events: none;
+}
+
+/* DAG tooltip styles */
+.dag-tooltip {
+    position: fixed;
+    display: none;
+    background: #ffffff;
+    color: #333;
+    padding: 8px 12px;
+        border-radius: 4px;
+    font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+    font-size: 18px;
+        max-width: 500px;
+        max-height: 400px;
+    overflow-y: auto;
+    overflow-x: hidden;
+        word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+    z-index: 10000;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    border: 1px solid #d0d0d0;
+    line-height: 1.4;
+}
+
+.dag-tooltip .tooltip-title {
+    font-weight: 600;
+    color: #1a1a1a;
+    font-size: 20px;
+        margin: 0 0 4px 0;
+        padding-bottom: 4px;
+    border-bottom: 1px solid #e8e8e8;
+    word-wrap: break-word;
+}
+
+.dag-tooltip .tooltip-sql {
+    color: #444;
+    line-height: 1.4;
+        margin: 4px 0 0 0;
+        padding: 0;
+        word-wrap: break-word;
+        white-space: pre-wrap;
+}
