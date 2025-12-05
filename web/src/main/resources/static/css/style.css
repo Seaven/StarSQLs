@@ -12,9 +12,9 @@ body {
 }
 
 .container {
-    max-width: 1600px;
+    max-width: 100%;
     margin: 0 auto;
-    padding: 15px;
+    padding: 20px 30px;
     display: flex;
         flex-direction: column;
     gap: 15px;
@@ -32,17 +32,16 @@ header {
 
 .header-content {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    max-width: 1200px;
-    margin: 0 auto;
+    width: 100%;
     position: relative;
 }
 
 .header-left {
+    flex: 1;
     text-align: center;
     position: relative;
-    padding-right: 80px;
 }
 
 .header-left h1 {
@@ -71,10 +70,10 @@ header {
 }
 
 .contact-info {
-    position: absolute;
-    right: -60px;
-    top: 50%;
-    transform: translateY(-50%);
+    position: relative;
+    right: 0;
+    top: auto;
+    transform: none;
     text-align: right;
 }
 
@@ -546,23 +545,14 @@ header {
 /* Medium screens (tablets) */
 @media (max-width: 1200px) {
     .container {
-        max-width: 95%;
         grid-template-columns: 1fr 320px;
         gap: 12px;
-        padding: 12px;
+        padding: 15px 20px;
     }
     
     .options-panel {
         min-width: 300px;
         padding: 12px;
-    }
-    
-    .header-content {
-        max-width: 100%;
-    }
-    
-    .contact-info {
-        right: -40px;
     }
     
     .contact-info span {
@@ -576,7 +566,7 @@ header {
     .container {
         grid-template-columns: 1fr 280px;
         gap: 10px;
-        padding: 10px;
+        padding: 12px 15px;
     }
     
     .options-panel {
@@ -590,10 +580,6 @@ header {
     
     .header-left p {
         font-size: 0.9em;
-    }
-    
-    .contact-info {
-        right: -30px;
     }
     
     .contact-info span {
@@ -615,7 +601,7 @@ header {
     .container {
         grid-template-columns: 1fr;
         grid-template-rows: auto auto 1fr;
-        padding: 10px;
+        padding: 12px 15px;
         gap: 15px;
         height: auto;
         min-height: 100vh;
